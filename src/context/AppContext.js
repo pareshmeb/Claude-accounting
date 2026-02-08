@@ -1,5 +1,5 @@
 'use client';
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '@/lib/translations';
 
 const AppContext = createContext();
@@ -7,56 +7,19 @@ const AppContext = createContext();
 export function AppProvider({ children }) {
   const [lang, setLang] = useState('en');
   const t = translations[lang];
+  const [loading, setLoading] = useState(true);
 
-  const [transactions, setTransactions] = useState([
-    { id: 1, type: 'income', amount: 5000, category: 0, description: 'Monthly salary', date: '2026-01-01' },
-  ]);
-
-  const [suppliers, setSuppliers] = useState([
-    { id: 1, name: 'Office Supplies Co', email: 'info@officesupplies.com', phone: '555-0101', address: '123 Main St' },
-    { id: 2, name: 'Tech Store', email: 'sales@techstore.com', phone: '555-0102', address: '456 Tech Ave' },
-  ]);
-
-  const [customers, setCustomers] = useState([
-    { id: 1, name: 'ABC Corp', email: 'contact@abccorp.com', phone: '555-0201', address: '789 Business Blvd' },
-    { id: 2, name: 'XYZ Ltd', email: 'info@xyzltd.com', phone: '555-0202', address: '321 Enterprise Way' },
-  ]);
-
-  const [creditors, setCreditors] = useState([
-    { id: 1, name: 'Bank Loan', amount: 10000, paid: 2000, dueDate: '2026-12-01', description: 'Home improvement loan' },
-  ]);
-
-  const [debtors, setDebtors] = useState([
-    { id: 1, name: 'John Smith', amount: 500, received: 100, dueDate: '2026-02-01', description: 'Personal loan' },
-  ]);
-
-  const [purchases, setPurchases] = useState([
-    { id: 1, billNo: 'BILL-001', supplierId: 1, date: '2026-01-03', description: 'Office supplies for Q1', items: [{ name: 'Printer Paper', qty: 10, price: 25 }], status: 'paid', paidAmount: 250 },
-    { id: 2, billNo: 'BILL-002', supplierId: 2, date: '2026-01-04', description: 'New laptop', items: [{ name: 'Laptop', qty: 1, price: 1200 }], status: 'partial', paidAmount: 500 },
-  ]);
-
-  const [sales, setSales] = useState([
-    { id: 1, invoiceNo: 'INV-001', customerId: 1, date: '2026-01-05', description: 'Website redesign', items: [{ name: 'Web Design', qty: 1, price: 1500 }], status: 'paid', paidAmount: 1500 },
-    { id: 2, invoiceNo: 'INV-002', customerId: 2, date: '2026-01-06', description: 'Consulting', items: [{ name: 'Consulting', qty: 5, price: 200 }], status: 'partial', paidAmount: 500 },
-  ]);
-
-  const [supplierPayments, setSupplierPayments] = useState([
-    { id: 1, supplierId: 1, amount: 250, date: '2026-01-03', reference: 'BILL-001', description: 'Full payment' },
-    { id: 2, supplierId: 2, amount: 500, date: '2026-01-05', reference: 'BILL-002', description: 'Partial payment' },
-  ]);
-
-  const [customerPayments, setCustomerPayments] = useState([
-    { id: 1, customerId: 1, amount: 1500, date: '2026-01-05', reference: 'INV-001', description: 'Bank transfer' },
-    { id: 2, customerId: 2, amount: 500, date: '2026-01-07', reference: 'INV-002', description: 'Check payment' },
-  ]);
-
-  const [creditorPayments, setCreditorPayments] = useState([
-    { id: 1, creditorId: 1, amount: 2000, date: '2026-01-10', description: 'Monthly installment' },
-  ]);
-
-  const [debtorReceipts, setDebtorReceipts] = useState([
-    { id: 1, debtorId: 1, amount: 100, date: '2026-01-08', description: 'First repayment' },
-  ]);
+  const [transactions, setTransactions] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [creditors, setCreditors] = useState([]);
+  const [debtors, setDebtors] = useState([]);
+  const [purchases, setPurchases] = useState([]);
+  const [sales, setSales] = useState([]);
+  const [supplierPayments, setSupplierPayments] = useState([]);
+  const [customerPayments, setCustomerPayments] = useState([]);
+  const [creditorPayments, setCreditorPayments] = useState([]);
+  const [debtorReceipts, setDebtorReceipts] = useState([]);
 
   const [showModal, setShowModal] = useState(null);
   const [paymentModal, setPaymentModal] = useState(null);
@@ -71,6 +34,36 @@ export function AppProvider({ children }) {
   const [newPurchase, setNewPurchase] = useState({ supplierId: '', date: new Date().toISOString().split('T')[0], description: '', items: [{ name: '', qty: 1, price: '' }] });
   const [newSale, setNewSale] = useState({ customerId: '', date: new Date().toISOString().split('T')[0], description: '', items: [{ name: '', qty: 1, price: '' }] });
   const [newTx, setNewTx] = useState({ type: 'expense', amount: '', category: '', description: '', date: new Date().toISOString().split('T')[0] });
+
+  // Fetch all data on mount
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/transactions').then(r => r.json()),
+      fetch('/api/suppliers').then(r => r.json()),
+      fetch('/api/customers').then(r => r.json()),
+      fetch('/api/creditors').then(r => r.json()),
+      fetch('/api/debtors').then(r => r.json()),
+      fetch('/api/purchases').then(r => r.json()),
+      fetch('/api/sales').then(r => r.json()),
+      fetch('/api/supplier-payments').then(r => r.json()),
+      fetch('/api/customer-payments').then(r => r.json()),
+      fetch('/api/creditor-payments').then(r => r.json()),
+      fetch('/api/debtor-receipts').then(r => r.json()),
+    ]).then(([tx, sup, cust, cred, debt, purch, sal, sp, cp, credp, dr]) => {
+      setTransactions(tx);
+      setSuppliers(sup);
+      setCustomers(cust);
+      setCreditors(cred);
+      setDebtors(debt);
+      setPurchases(purch);
+      setSales(sal);
+      setSupplierPayments(sp);
+      setCustomerPayments(cp);
+      setCreditorPayments(credp);
+      setDebtorReceipts(dr);
+      setLoading(false);
+    });
+  }, []);
 
   // Helpers
   const getTotal = (items) => items.reduce((s, i) => s + (i.qty * i.price), 0);
@@ -102,90 +95,140 @@ export function AppProvider({ children }) {
   const totalDebtorOwed = debtors.reduce((s, d) => s + (d.amount - d.received), 0);
 
   // Actions
-  const addSupplierAction = () => {
+  const addSupplierAction = async () => {
     if (!newSupplier.name) return;
-    setSuppliers([...suppliers, { ...newSupplier, id: Date.now() }]);
+    const supplier = { ...newSupplier, id: Date.now() };
+    await fetch('/api/suppliers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(supplier) });
+    setSuppliers([...suppliers, supplier]);
     setNewSupplier({ name: '', email: '', phone: '', address: '' });
     setShowModal(null);
   };
 
-  const addCustomerAction = () => {
+  const addCustomerAction = async () => {
     if (!newCustomer.name) return;
-    setCustomers([...customers, { ...newCustomer, id: Date.now() }]);
+    const customer = { ...newCustomer, id: Date.now() };
+    await fetch('/api/customers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(customer) });
+    setCustomers([...customers, customer]);
     setNewCustomer({ name: '', email: '', phone: '', address: '' });
     setShowModal(null);
   };
 
-  const addCreditorAction = () => {
+  const addCreditorAction = async () => {
     if (!newCreditor.name || !newCreditor.amount) return;
-    setCreditors([...creditors, { ...newCreditor, id: Date.now(), amount: parseFloat(newCreditor.amount), paid: 0 }]);
+    const creditor = { ...newCreditor, id: Date.now(), amount: parseFloat(newCreditor.amount), paid: 0 };
+    await fetch('/api/creditors', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creditor) });
+    setCreditors([...creditors, creditor]);
     setNewCreditor({ name: '', amount: '', dueDate: '', description: '' });
     setShowModal(null);
   };
 
-  const addDebtorAction = () => {
+  const addDebtorAction = async () => {
     if (!newDebtor.name || !newDebtor.amount) return;
-    setDebtors([...debtors, { ...newDebtor, id: Date.now(), amount: parseFloat(newDebtor.amount), received: 0 }]);
+    const debtor = { ...newDebtor, id: Date.now(), amount: parseFloat(newDebtor.amount), received: 0 };
+    await fetch('/api/debtors', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(debtor) });
+    setDebtors([...debtors, debtor]);
     setNewDebtor({ name: '', amount: '', dueDate: '', description: '' });
     setShowModal(null);
   };
 
-  const addPurchaseAction = () => {
+  const addPurchaseAction = async () => {
     if (!newPurchase.supplierId || newPurchase.items.some(i => !i.name || !i.price)) return;
     const items = newPurchase.items.map(i => ({ ...i, qty: parseInt(i.qty), price: parseFloat(i.price) }));
     const billNo = `BILL-${String(purchases.length + 1).padStart(3, '0')}`;
-    setPurchases([...purchases, { ...newPurchase, id: Date.now(), billNo, supplierId: parseInt(newPurchase.supplierId), items, status: 'unpaid', paidAmount: 0 }]);
+    const purchase = { ...newPurchase, id: Date.now(), billNo, supplierId: parseInt(newPurchase.supplierId), items, status: 'unpaid', paidAmount: 0 };
+    await fetch('/api/purchases', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(purchase) });
+    setPurchases([...purchases, purchase]);
     setNewPurchase({ supplierId: '', date: new Date().toISOString().split('T')[0], description: '', items: [{ name: '', qty: 1, price: '' }] });
     setShowModal(null);
   };
 
-  const addSaleAction = () => {
+  const addSaleAction = async () => {
     if (!newSale.customerId || newSale.items.some(i => !i.name || !i.price)) return;
     const items = newSale.items.map(i => ({ ...i, qty: parseInt(i.qty), price: parseFloat(i.price) }));
     const invoiceNo = `INV-${String(sales.length + 1).padStart(3, '0')}`;
-    setSales([...sales, { ...newSale, id: Date.now(), invoiceNo, customerId: parseInt(newSale.customerId), items, status: 'unpaid', paidAmount: 0 }]);
+    const sale = { ...newSale, id: Date.now(), invoiceNo, customerId: parseInt(newSale.customerId), items, status: 'unpaid', paidAmount: 0 };
+    await fetch('/api/sales', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sale) });
+    setSales([...sales, sale]);
     setNewSale({ customerId: '', date: new Date().toISOString().split('T')[0], description: '', items: [{ name: '', qty: 1, price: '' }] });
     setShowModal(null);
   };
 
-  const addTransactionAction = () => {
+  const addTransactionAction = async () => {
     if (!newTx.amount || newTx.category === '') return;
-    setTransactions([...transactions, { ...newTx, id: Date.now(), amount: parseFloat(newTx.amount), category: parseInt(newTx.category) }]);
+    const tx = { ...newTx, id: Date.now(), amount: parseFloat(newTx.amount), category: parseInt(newTx.category) };
+    await fetch('/api/transactions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tx) });
+    setTransactions([...transactions, tx]);
     setNewTx({ type: 'expense', amount: '', category: '', description: '', date: new Date().toISOString().split('T')[0] });
     setShowModal(null);
   };
 
-  const makePaymentAction = () => {
+  const makePaymentAction = async () => {
     if (!paymentAmount || !paymentModal) return;
     const amt = parseFloat(paymentAmount);
     const date = new Date().toISOString().split('T')[0];
     const { type, id, name, billNo, invoiceNo } = paymentModal;
+    const transactionId = Date.now();
+
+    let transactionType, transactionCategory, transactionDescription;
 
     if (type === 'supplier') {
-      setSupplierPayments([...supplierPayments, { id: Date.now(), supplierId: id, amount: amt, date, reference: billNo || 'Direct', description: paymentDesc }]);
-      if (billNo) {
-        const p = purchases.find(p => p.billNo === billNo);
-        const newPaid = p.paidAmount + amt;
-        setPurchases(purchases.map(x => x.billNo === billNo ? { ...x, paidAmount: newPaid, status: newPaid >= getTotal(x.items) ? 'paid' : 'partial' } : x));
-      }
-      setTransactions([...transactions, { id: Date.now(), type: 'expense', amount: amt, category: 6, description: paymentDesc || `${t.payment} ${t.to} ${name}`, date }]);
+      transactionType = 'expense';
+      transactionCategory = 6;
+      transactionDescription = paymentDesc || `${t.payment} ${t.to} ${name}`;
     } else if (type === 'customer') {
-      setCustomerPayments([...customerPayments, { id: Date.now(), customerId: id, amount: amt, date, reference: invoiceNo || 'Direct', description: paymentDesc }]);
-      if (invoiceNo) {
-        const s = sales.find(s => s.invoiceNo === invoiceNo);
-        const newPaid = s.paidAmount + amt;
-        setSales(sales.map(x => x.invoiceNo === invoiceNo ? { ...x, paidAmount: newPaid, status: newPaid >= getTotal(x.items) ? 'paid' : 'partial' } : x));
-      }
-      setTransactions([...transactions, { id: Date.now(), type: 'income', amount: amt, category: 3, description: paymentDesc || `${t.receipt} ${t.from} ${name}`, date }]);
+      transactionType = 'income';
+      transactionCategory = 3;
+      transactionDescription = paymentDesc || `${t.receipt} ${t.from} ${name}`;
     } else if (type === 'creditor') {
-      setCreditors(creditors.map(c => c.id === id ? { ...c, paid: c.paid + amt } : c));
-      setCreditorPayments([...creditorPayments, { id: Date.now(), creditorId: id, amount: amt, date, description: paymentDesc }]);
-      setTransactions([...transactions, { id: Date.now(), type: 'expense', amount: amt, category: 7, description: paymentDesc || `${t.payment} ${t.to} ${name}`, date }]);
+      transactionType = 'expense';
+      transactionCategory = 7;
+      transactionDescription = paymentDesc || `${t.payment} ${t.to} ${name}`;
     } else if (type === 'debtor') {
-      setDebtors(debtors.map(d => d.id === id ? { ...d, received: d.received + amt } : d));
-      setDebtorReceipts([...debtorReceipts, { id: Date.now(), debtorId: id, amount: amt, date, description: paymentDesc }]);
-      setTransactions([...transactions, { id: Date.now(), type: 'income', amount: amt, category: 4, description: paymentDesc || `${t.receipt} ${t.from} ${name}`, date }]);
+      transactionType = 'income';
+      transactionCategory = 4;
+      transactionDescription = paymentDesc || `${t.receipt} ${t.from} ${name}`;
     }
+
+    await fetch('/api/payments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type, id, amount: amt, date, description: paymentDesc, reference: billNo || invoiceNo || 'Direct',
+        billNo, invoiceNo,
+        transactionId, transactionType, transactionCategory, transactionDescription,
+      }),
+    });
+
+    // Update local state to match
+    const newTxRecord = { id: transactionId, type: transactionType, amount: amt, category: transactionCategory, description: transactionDescription, date };
+    setTransactions(prev => [...prev, newTxRecord]);
+
+    if (type === 'supplier') {
+      setSupplierPayments(prev => [...prev, { id: Date.now(), supplierId: id, amount: amt, date, reference: billNo || 'Direct', description: paymentDesc }]);
+      if (billNo) {
+        setPurchases(prev => prev.map(x => {
+          if (x.billNo !== billNo) return x;
+          const newPaid = x.paidAmount + amt;
+          return { ...x, paidAmount: newPaid, status: newPaid >= getTotal(x.items) ? 'paid' : 'partial' };
+        }));
+      }
+    } else if (type === 'customer') {
+      setCustomerPayments(prev => [...prev, { id: Date.now(), customerId: id, amount: amt, date, reference: invoiceNo || 'Direct', description: paymentDesc }]);
+      if (invoiceNo) {
+        setSales(prev => prev.map(x => {
+          if (x.invoiceNo !== invoiceNo) return x;
+          const newPaid = x.paidAmount + amt;
+          return { ...x, paidAmount: newPaid, status: newPaid >= getTotal(x.items) ? 'paid' : 'partial' };
+        }));
+      }
+    } else if (type === 'creditor') {
+      setCreditors(prev => prev.map(c => c.id === id ? { ...c, paid: c.paid + amt } : c));
+      setCreditorPayments(prev => [...prev, { id: Date.now(), creditorId: id, amount: amt, date, description: paymentDesc }]);
+    } else if (type === 'debtor') {
+      setDebtors(prev => prev.map(d => d.id === id ? { ...d, received: d.received + amt } : d));
+      setDebtorReceipts(prev => [...prev, { id: Date.now(), debtorId: id, amount: amt, date, description: paymentDesc }]);
+    }
+
     setPaymentModal(null);
     setPaymentAmount('');
     setPaymentDesc('');
@@ -213,12 +256,23 @@ export function AppProvider({ children }) {
     else setNewPurchase({ ...newPurchase, items: newPurchase.items.filter((_, i) => i !== idx) });
   };
 
-  const deleteTransaction = (id) => setTransactions(transactions.filter(x => x.id !== id));
-  const deleteCreditor = (id) => setCreditors(creditors.filter(x => x.id !== id));
-  const deleteDebtor = (id) => setDebtors(debtors.filter(x => x.id !== id));
+  const deleteTransaction = async (id) => {
+    await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
+    setTransactions(transactions.filter(x => x.id !== id));
+  };
+
+  const deleteCreditor = async (id) => {
+    await fetch(`/api/creditors/${id}`, { method: 'DELETE' });
+    setCreditors(creditors.filter(x => x.id !== id));
+  };
+
+  const deleteDebtor = async (id) => {
+    await fetch(`/api/debtors/${id}`, { method: 'DELETE' });
+    setDebtors(debtors.filter(x => x.id !== id));
+  };
 
   const value = {
-    lang, setLang, t,
+    lang, setLang, t, loading,
     transactions, suppliers, customers, creditors, debtors,
     purchases, sales,
     supplierPayments, customerPayments, creditorPayments, debtorReceipts,
