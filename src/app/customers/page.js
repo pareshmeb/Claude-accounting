@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import AccountView from '@/components/AccountView';
-import { Plus } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 
 export default function CustomersPage() {
   const {
@@ -12,6 +12,18 @@ export default function CustomersPage() {
   } = useApp();
 
   const [selectedAccount, setSelectedAccount] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredCustomers = customers.filter(c => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      c.name.toLowerCase().includes(term) ||
+      (c.email && c.email.toLowerCase().includes(term)) ||
+      (c.phone && c.phone.toLowerCase().includes(term)) ||
+      (c.address && c.address.toLowerCase().includes(term))
+    );
+  });
 
   if (selectedAccount) {
     return (
@@ -33,8 +45,18 @@ export default function CustomersPage() {
           <Plus size={12} /> {t.add}
         </button>
       </div>
+      <div className="relative">
+        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500" />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          placeholder={t.placeholders.searchCustomers}
+          className="w-full pl-8 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
+        />
+      </div>
       <div className="grid gap-2">
-        {customers.map(c => (
+        {filteredCustomers.map(c => (
           <div key={c.id} onClick={() => setSelectedAccount(c)} className="bg-gray-800 rounded-xl p-2 cursor-pointer hover:ring-1 hover:ring-cyan-500/50">
             <div className="flex justify-between items-center">
               <div>
