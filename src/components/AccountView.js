@@ -1,5 +1,6 @@
 'use client';
 import { useApp } from '@/context/AppContext';
+import { formatDate } from '@/lib/formatDate';
 import { ArrowLeft, Plus, CreditCard } from 'lucide-react';
 
 export default function AccountView({ account, onBack }) {
@@ -101,7 +102,7 @@ export default function AccountView({ account, onBack }) {
             <tbody>
               {ledger.map((l, i) => (
                 <tr key={i} className="border-t border-gray-700">
-                  <td className="p-1.5 text-gray-400">{l.date}</td>
+                  <td className="p-1.5 text-gray-400">{formatDate(l.date)}</td>
                   <td className="p-1.5">
                     <span className={`px-1 py-0.5 rounded text-xs ${
                       l.type === 'payment'

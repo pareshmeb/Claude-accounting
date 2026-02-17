@@ -1,8 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import AccountView from '@/components/AccountView';
-import { Plus, Search } from 'lucide-react';
+import SearchBox from '@/components/SearchBox';
+import { Plus } from 'lucide-react';
 
 export default function CustomersPage() {
   const {
@@ -12,18 +13,17 @@ export default function CustomersPage() {
   } = useApp();
 
   const [selectedAccount, setSelectedAccount] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState('');
 
-  const filteredCustomers = customers.filter(c => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      c.name.toLowerCase().includes(term) ||
-      (c.email && c.email.toLowerCase().includes(term)) ||
-      (c.phone && c.phone.toLowerCase().includes(term)) ||
-      (c.address && c.address.toLowerCase().includes(term))
+  const filteredCustomers = useMemo(() => {
+    if (!search.trim()) return customers;
+    const q = search.toLowerCase();
+    return customers.filter(c =>
+      c.name?.toLowerCase().includes(q) ||
+      c.email?.toLowerCase().includes(q) ||
+      c.phone?.toLowerCase().includes(q)
     );
-  });
+  }, [customers, search]);
 
   if (selectedAccount) {
     return (
@@ -45,16 +45,7 @@ export default function CustomersPage() {
           <Plus size={12} /> {t.add}
         </button>
       </div>
-      <div className="relative">
-        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500" />
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          placeholder={t.placeholders.searchCustomers}
-          className="w-full pl-8 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50"
-        />
-      </div>
+      <SearchBox value={search} onChange={setSearch} placeholder={t.searchByNameEmail} />
       <div className="grid gap-2">
         {filteredCustomers.map(c => (
           <div key={c.id} onClick={() => setSelectedAccount(c)} className="bg-gray-800 rounded-xl p-2 cursor-pointer hover:ring-1 hover:ring-cyan-500/50">
@@ -75,6 +66,9 @@ export default function CustomersPage() {
             </div>
           </div>
         ))}
+        {filteredCustomers.length === 0 && search && (
+          <p className="text-center text-gray-500 text-sm py-4">{t.noResults}</p>
+        )}
       </div>
     </div>
   );

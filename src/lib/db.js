@@ -129,6 +129,31 @@ db.exec(`
     description TEXT,
     FOREIGN KEY (debtorId) REFERENCES debtors(id)
   );
+
+  -- Indexes for search and date filtering
+  CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
+  CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
+
+  CREATE INDEX IF NOT EXISTS idx_suppliers_name ON suppliers(name);
+  CREATE INDEX IF NOT EXISTS idx_customers_name ON customers(name);
+
+  CREATE INDEX IF NOT EXISTS idx_purchases_date ON purchases(date);
+  CREATE INDEX IF NOT EXISTS idx_purchases_supplierId ON purchases(supplierId);
+  CREATE INDEX IF NOT EXISTS idx_purchase_items_purchaseId ON purchase_items(purchaseId);
+
+  CREATE INDEX IF NOT EXISTS idx_sales_date ON sales(date);
+  CREATE INDEX IF NOT EXISTS idx_sales_customerId ON sales(customerId);
+  CREATE INDEX IF NOT EXISTS idx_sale_items_saleId ON sale_items(saleId);
+
+  CREATE INDEX IF NOT EXISTS idx_creditors_name ON creditors(name);
+  CREATE INDEX IF NOT EXISTS idx_debtors_name ON debtors(name);
+
+  CREATE INDEX IF NOT EXISTS idx_supplier_payments_supplierId ON supplier_payments(supplierId);
+  CREATE INDEX IF NOT EXISTS idx_supplier_payments_date ON supplier_payments(date);
+  CREATE INDEX IF NOT EXISTS idx_customer_payments_customerId ON customer_payments(customerId);
+  CREATE INDEX IF NOT EXISTS idx_customer_payments_date ON customer_payments(date);
+  CREATE INDEX IF NOT EXISTS idx_creditor_payments_creditorId ON creditor_payments(creditorId);
+  CREATE INDEX IF NOT EXISTS idx_debtor_receipts_debtorId ON debtor_receipts(debtorId);
 `);
 
 // Seed data if database is empty

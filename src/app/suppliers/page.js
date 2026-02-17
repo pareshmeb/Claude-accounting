@@ -1,8 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import AccountView from '@/components/AccountView';
-import { Plus, Search } from 'lucide-react';
+import SearchBox from '@/components/SearchBox';
+import { Plus } from 'lucide-react';
 
 export default function SuppliersPage() {
   const {
@@ -12,18 +13,17 @@ export default function SuppliersPage() {
   } = useApp();
 
   const [selectedAccount, setSelectedAccount] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState('');
 
-  const filteredSuppliers = suppliers.filter(s => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    return (
-      s.name.toLowerCase().includes(term) ||
-      (s.email && s.email.toLowerCase().includes(term)) ||
-      (s.phone && s.phone.toLowerCase().includes(term)) ||
-      (s.address && s.address.toLowerCase().includes(term))
+  const filteredSuppliers = useMemo(() => {
+    if (!search.trim()) return suppliers;
+    const q = search.toLowerCase();
+    return suppliers.filter(s =>
+      s.name?.toLowerCase().includes(q) ||
+      s.email?.toLowerCase().includes(q) ||
+      s.phone?.toLowerCase().includes(q)
     );
-  });
+  }, [suppliers, search]);
 
   if (selectedAccount) {
     return (
@@ -45,16 +45,7 @@ export default function SuppliersPage() {
           <Plus size={12} /> {t.add}
         </button>
       </div>
-      <div className="relative">
-        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500" />
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          placeholder={t.placeholders.searchSuppliers}
-          className="w-full pl-8 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50"
-        />
-      </div>
+      <SearchBox value={search} onChange={setSearch} placeholder={t.searchByNameEmail} />
       <div className="grid gap-2">
         {filteredSuppliers.map(s => (
           <div key={s.id} onClick={() => setSelectedAccount(s)} className="bg-gray-800 rounded-xl p-2 cursor-pointer hover:ring-1 hover:ring-orange-500/50">
@@ -75,6 +66,9 @@ export default function SuppliersPage() {
             </div>
           </div>
         ))}
+        {filteredSuppliers.length === 0 && search && (
+          <p className="text-center text-gray-500 text-sm py-4">{t.noResults}</p>
+        )}
       </div>
     </div>
   );
