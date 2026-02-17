@@ -111,7 +111,9 @@ export const translations = {
       purchaseDesc: 'Description (e.g., purchase purpose, notes)',
       saleDesc: 'Description (e.g., project name, service details)',
       paymentDesc: 'Description (e.g., payment method, reference)',
-      item: 'Item *'
+      item: 'Item *',
+      searchSuppliers: 'Search suppliers...',
+      searchCustomers: 'Search customers...'
     }
   },
   gu: {
@@ -226,7 +228,9 @@ export const translations = {
       purchaseDesc: 'વર્ણન (દા.ત., ખરીદીનો હેતુ, નોંધો)',
       saleDesc: 'વર્ણન (દા.ત., પ્રોજેક્ટ નામ, સેવા વિગતો)',
       paymentDesc: 'વર્ણન (દા.ત., ચુકવણી પદ્ધતિ, સંદર્ભ)',
-      item: 'વસ્તુ *'
+      item: 'વસ્તુ *',
+      searchSuppliers: 'સપ્લાયર્સ શોધો...',
+      searchCustomers: 'ગ્રાહકો શોધો...'
     }
   }
 };
