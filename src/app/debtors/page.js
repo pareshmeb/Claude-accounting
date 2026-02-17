@@ -1,5 +1,8 @@
 'use client';
+import { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
+import SearchBox from '@/components/SearchBox';
+import { formatDate } from '@/lib/formatDate';
 import { Plus, X } from 'lucide-react';
 
 export default function DebtorsPage() {
@@ -8,6 +11,18 @@ export default function DebtorsPage() {
     totalDebtorOwed, setShowModal,
     setPaymentModal, deleteDebtor,
   } = useApp();
+
+  const [search, setSearch] = useState('');
+
+  const filteredDebtors = useMemo(() => {
+    if (!search.trim()) return debtors;
+    const q = search.toLowerCase();
+    return debtors.filter(d =>
+      d.name?.toLowerCase().includes(q) ||
+      d.description?.toLowerCase().includes(q) ||
+      d.dueDate?.includes(q)
+    );
+  }, [debtors, search]);
 
   return (
     <div className="space-y-3">
@@ -20,8 +35,9 @@ export default function DebtorsPage() {
           <Plus size={12} /> {t.add}
         </button>
       </div>
+      <SearchBox value={search} onChange={setSearch} placeholder={t.searchByNameDesc} />
       <div className="grid gap-2">
-        {debtors.map(d => (
+        {filteredDebtors.map(d => (
           <div key={d.id} className="bg-gray-800 rounded-xl p-3">
             <div className="flex justify-between items-start mb-2">
               <div>
@@ -37,10 +53,10 @@ export default function DebtorsPage() {
               <div className="h-full bg-cyan-500 rounded-full" style={{ width: `${(d.received / d.amount) * 100}%` }} />
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-500 text-xs">{t.due}: {d.dueDate || t.notSet}</span>
+              <span className="text-gray-500 text-xs">{t.due}: {d.dueDate ? formatDate(d.dueDate) : t.notSet}</span>
               <div className="flex gap-1">
                 <button onClick={() => setPaymentModal({ type: 'debtor', id: d.id, name: d.name, max: d.amount - d.received })} className="px-2 py-0.5 bg-cyan-600 rounded text-xs">{t.receive}</button>
-                <button onClick={() => deleteDebtor(d.id)} className="p-1 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400"><X size={12} /></button>
+                <button onClick={() => window.confirm(t.confirmDelete.replace('{name}', d.name)) && deleteDebtor(d.id)} className="p-1 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400"><X size={12} /></button>
               </div>
             </div>
             {debtorReceipts.filter(r => r.debtorId === d.id).length > 0 && (
@@ -48,7 +64,7 @@ export default function DebtorsPage() {
                 <p className="text-gray-400 text-xs mb-1">{t.receiptHistory}:</p>
                 {debtorReceipts.filter(r => r.debtorId === d.id).map(r => (
                   <div key={r.id} className="flex justify-between text-xs py-0.5">
-                    <span className="text-gray-500">{r.date}</span>
+                    <span className="text-gray-500">{formatDate(r.date)}</span>
                     <span className="text-gray-400 flex-1 mx-2 truncate">{r.description || '-'}</span>
                     <span className="text-emerald-400">₹{r.amount.toLocaleString('en-IN')}</span>
                   </div>
@@ -57,6 +73,9 @@ export default function DebtorsPage() {
             )}
           </div>
         ))}
+        {filteredDebtors.length === 0 && search && (
+          <p className="text-center text-gray-500 text-sm py-4">{t.noResults}</p>
+        )}
       </div>
     </div>
   );

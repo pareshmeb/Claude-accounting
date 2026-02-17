@@ -84,6 +84,15 @@ export const translations = {
     totalReceivable: 'Total Receivable',
     balanceOwed: 'Balance Owed',
     balanceReceivable: 'Balance Receivable',
+    filterByDate: 'Filter by Date',
+    allTransactions: 'All Transactions',
+    clear: 'Clear',
+    search: 'Search',
+    searchByNameDesc: 'Search by name, description...',
+    searchByNameEmail: 'Search by name, email...',
+    searchByNameDescDate: 'Search by name, description, date...',
+    noResults: 'No results found',
+    confirmDelete: 'Are you sure you want to delete "{name}"?',
     categories: {
       income: ['Salary', 'Freelance', 'Investments', 'Sales Revenue', 'Debt Collection', 'Other Income'],
       expense: ['Food', 'Transport', 'Utilities', 'Entertainment', 'Shopping', 'Healthcare', 'Purchase Cost', 'Debt Payment', 'Other']
@@ -190,6 +199,15 @@ export const translations = {
     totalReceivable: 'કુલ મળવાપાત્ર',
     balanceOwed: 'બાકી રકમ',
     balanceReceivable: 'મળવાપાત્ર રકમ',
+    filterByDate: 'તારીખ દ્વારા ફિલ્ટર',
+    allTransactions: 'બધા વ્યવહારો',
+    clear: 'સાફ કરો',
+    search: 'શોધો',
+    searchByNameDesc: 'નામ, વર્ણન દ્વારા શોધો...',
+    searchByNameEmail: 'નામ, ઈમેલ દ્વારા શોધો...',
+    searchByNameDescDate: 'નામ, વર્ણન, તારીખ દ્વારા શોધો...',
+    noResults: 'કોઈ પરિણામ મળ્યું નથી',
+    confirmDelete: 'શું તમે ખરેખર "{name}" કાઢી નાખવા માંગો છો?',
     categories: {
       income: ['પગાર', 'ફ્રીલાન્સ', 'રોકાણ', 'વેચાણ આવક', 'દેવું વસૂલાત', 'અન્ય આવક'],
       expense: ['ખોરાક', 'વાહનવ્યવહાર', 'યુટિલિટી', 'મનોરંજન', 'ખરીદી', 'આરોગ્ય', 'ખરીદી ખર્ચ', 'દેવું ચુકવણી', 'અન્ય']

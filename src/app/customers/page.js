@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import AccountView from '@/components/AccountView';
+import SearchBox from '@/components/SearchBox';
 import { Plus } from 'lucide-react';
 
 export default function CustomersPage() {
@@ -12,6 +13,17 @@ export default function CustomersPage() {
   } = useApp();
 
   const [selectedAccount, setSelectedAccount] = useState(null);
+  const [search, setSearch] = useState('');
+
+  const filteredCustomers = useMemo(() => {
+    if (!search.trim()) return customers;
+    const q = search.toLowerCase();
+    return customers.filter(c =>
+      c.name?.toLowerCase().includes(q) ||
+      c.email?.toLowerCase().includes(q) ||
+      c.phone?.toLowerCase().includes(q)
+    );
+  }, [customers, search]);
 
   if (selectedAccount) {
     return (
@@ -33,8 +45,9 @@ export default function CustomersPage() {
           <Plus size={12} /> {t.add}
         </button>
       </div>
+      <SearchBox value={search} onChange={setSearch} placeholder={t.searchByNameEmail} />
       <div className="grid gap-2">
-        {customers.map(c => (
+        {filteredCustomers.map(c => (
           <div key={c.id} onClick={() => setSelectedAccount(c)} className="bg-gray-800 rounded-xl p-2 cursor-pointer hover:ring-1 hover:ring-cyan-500/50">
             <div className="flex justify-between items-center">
               <div>
@@ -53,6 +66,9 @@ export default function CustomersPage() {
             </div>
           </div>
         ))}
+        {filteredCustomers.length === 0 && search && (
+          <p className="text-center text-gray-500 text-sm py-4">{t.noResults}</p>
+        )}
       </div>
     </div>
   );
