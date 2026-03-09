@@ -25,6 +25,7 @@ export function AppProvider({ children }) {
   const [paymentModal, setPaymentModal] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentDesc, setPaymentDesc] = useState('');
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
 
   // Form states
   const [newSupplier, setNewSupplier] = useState({ name: '', email: '', phone: '', address: '' });
@@ -165,7 +166,7 @@ export function AppProvider({ children }) {
   const makePaymentAction = async () => {
     if (!paymentAmount || !paymentModal) return;
     const amt = parseFloat(paymentAmount);
-    const date = new Date().toISOString().split('T')[0];
+    const date = paymentDate || new Date().toISOString().split('T')[0];
     const { type, id, name, billNo, invoiceNo } = paymentModal;
     const transactionId = Date.now();
 
@@ -232,6 +233,7 @@ export function AppProvider({ children }) {
     setPaymentModal(null);
     setPaymentAmount('');
     setPaymentDesc('');
+    setPaymentDate(new Date().toISOString().split('T')[0]);
   };
 
   const addItem = (type) => {
@@ -280,6 +282,7 @@ export function AppProvider({ children }) {
     paymentModal, setPaymentModal,
     paymentAmount, setPaymentAmount,
     paymentDesc, setPaymentDesc,
+    paymentDate, setPaymentDate,
     newSupplier, setNewSupplier,
     newCustomer, setNewCustomer,
     newCreditor, setNewCreditor,
