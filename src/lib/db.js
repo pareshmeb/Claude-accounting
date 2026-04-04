@@ -9,6 +9,26 @@ db.pragma('foreign_keys = ON');
 
 // Create tables
 db.exec(`
+  CREATE TABLE IF NOT EXISTS accounts (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    totalAmount REAL NOT NULL DEFAULT 0,
+    totalTransacted REAL NOT NULL DEFAULT 0,
+    dueDate TEXT,
+    description TEXT,
+    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS account_transactions (
+    id INTEGER PRIMARY KEY,
+    accountId INTEGER NOT NULL,
+    transactionType TEXT NOT NULL,
+    amount REAL NOT NULL,
+    date TEXT NOT NULL,
+    description TEXT,
+    FOREIGN KEY (accountId) REFERENCES accounts(id)
+  );
+
   CREATE TABLE IF NOT EXISTS transactions (
     id INTEGER PRIMARY KEY,
     type TEXT NOT NULL,
@@ -20,7 +40,7 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS suppliers (
     id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     email TEXT,
     phone TEXT,
     address TEXT
@@ -28,7 +48,7 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS customers (
     id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     email TEXT,
     phone TEXT,
     address TEXT
@@ -146,41 +166,68 @@ if (count === 0) {
     // Transactions
     db.prepare('INSERT INTO transactions (id, type, amount, category, description, date) VALUES (?, ?, ?, ?, ?, ?)').run(1, 'income', 5000, 0, 'Monthly salary', '2026-01-01');
 
+    // Accounts (unified creditors/debtors)
+    db.prepare('INSERT INTO accounts (id, name, totalAmount, totalTransacted, dueDate, description) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(1, 'Bank Loan', 10000, 2000, '2026-12-01', 'Home improvement loan');
+    db.prepare('INSERT INTO accounts (id, name, totalAmount, totalTransacted, dueDate, description) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(2, 'John Smith', 500, 100, '2026-02-01', 'Personal loan');
+
+    // Account transactions for creditor (id=1)
+    db.prepare('INSERT INTO account_transactions (id, accountId, transactionType, amount, date, description) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(1, 1, 'payment', 2000, '2026-01-10', 'Monthly installment');
+
+    // Account transactions for debtor (id=2)
+    db.prepare('INSERT INTO account_transactions (id, accountId, transactionType, amount, date, description) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(2, 2, 'receipt', 100, '2026-01-08', 'First repayment');
+
+    // Legacy tables (kept for backwards compatibility)
     // Creditors
-    db.prepare('INSERT INTO creditors (id, name, amount, paid, dueDate, description) VALUES (?, ?, ?, ?, ?, ?)').run(1, 'Bank Loan', 10000, 2000, '2026-12-01', 'Home improvement loan');
+    db.prepare('INSERT INTO creditors (id, name, amount, paid, dueDate, description) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(1, 'Bank Loan', 10000, 2000, '2026-12-01', 'Home improvement loan');
 
     // Debtors
-    db.prepare('INSERT INTO debtors (id, name, amount, received, dueDate, description) VALUES (?, ?, ?, ?, ?, ?)').run(1, 'John Smith', 500, 100, '2026-02-01', 'Personal loan');
+    db.prepare('INSERT INTO debtors (id, name, amount, received, dueDate, description) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(1, 'John Smith', 500, 100, '2026-02-01', 'Personal loan');
 
     // Purchases
-    db.prepare('INSERT INTO purchases (id, billNo, supplierId, date, description, status, paidAmount) VALUES (?, ?, ?, ?, ?, ?, ?)').run(1, 'BILL-001', 1, '2026-01-03', 'Office supplies for Q1', 'paid', 250);
-    db.prepare('INSERT INTO purchases (id, billNo, supplierId, date, description, status, paidAmount) VALUES (?, ?, ?, ?, ?, ?, ?)').run(2, 'BILL-002', 2, '2026-01-04', 'New laptop', 'partial', 500);
+    db.prepare('INSERT INTO purchases (id, billNo, supplierId, date, description, status, paidAmount) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(1, 'BILL-001', 1, '2026-01-03', 'Office supplies for Q1', 'paid', 250);
+    db.prepare('INSERT INTO purchases (id, billNo, supplierId, date, description, status, paidAmount) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(2, 'BILL-002', 2, '2026-01-04', 'New laptop', 'partial', 500);
 
     // Purchase items
     db.prepare('INSERT INTO purchase_items (purchaseId, name, qty, price) VALUES (?, ?, ?, ?)').run(1, 'Printer Paper', 10, 25);
     db.prepare('INSERT INTO purchase_items (purchaseId, name, qty, price) VALUES (?, ?, ?, ?)').run(2, 'Laptop', 1, 1200);
 
     // Sales
-    db.prepare('INSERT INTO sales (id, invoiceNo, customerId, date, description, status, paidAmount) VALUES (?, ?, ?, ?, ?, ?, ?)').run(1, 'INV-001', 1, '2026-01-05', 'Website redesign', 'paid', 1500);
-    db.prepare('INSERT INTO sales (id, invoiceNo, customerId, date, description, status, paidAmount) VALUES (?, ?, ?, ?, ?, ?, ?)').run(2, 'INV-002', 2, '2026-01-06', 'Consulting', 'partial', 500);
+    db.prepare('INSERT INTO sales (id, invoiceNo, customerId, date, description, status, paidAmount) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(1, 'INV-001', 1, '2026-01-05', 'Website redesign', 'paid', 1500);
+    db.prepare('INSERT INTO sales (id, invoiceNo, customerId, date, description, status, paidAmount) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(2, 'INV-002', 2, '2026-01-06', 'Consulting', 'partial', 500);
 
     // Sale items
     db.prepare('INSERT INTO sale_items (saleId, name, qty, price) VALUES (?, ?, ?, ?)').run(1, 'Web Design', 1, 1500);
     db.prepare('INSERT INTO sale_items (saleId, name, qty, price) VALUES (?, ?, ?, ?)').run(2, 'Consulting', 5, 200);
 
     // Supplier payments
-    db.prepare('INSERT INTO supplier_payments (id, supplierId, amount, date, reference, description) VALUES (?, ?, ?, ?, ?, ?)').run(1, 1, 250, '2026-01-03', 'BILL-001', 'Full payment');
-    db.prepare('INSERT INTO supplier_payments (id, supplierId, amount, date, reference, description) VALUES (?, ?, ?, ?, ?, ?)').run(2, 2, 500, '2026-01-05', 'BILL-002', 'Partial payment');
+    db.prepare('INSERT INTO supplier_payments (id, supplierId, amount, date, reference, description) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(1, 1, 250, '2026-01-03', 'BILL-001', 'Full payment');
+    db.prepare('INSERT INTO supplier_payments (id, supplierId, amount, date, reference, description) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(2, 2, 500, '2026-01-05', 'BILL-002', 'Partial payment');
 
     // Customer payments
-    db.prepare('INSERT INTO customer_payments (id, customerId, amount, date, reference, description) VALUES (?, ?, ?, ?, ?, ?)').run(1, 1, 1500, '2026-01-05', 'INV-001', 'Bank transfer');
-    db.prepare('INSERT INTO customer_payments (id, customerId, amount, date, reference, description) VALUES (?, ?, ?, ?, ?, ?)').run(2, 2, 500, '2026-01-07', 'INV-002', 'Check payment');
+    db.prepare('INSERT INTO customer_payments (id, customerId, amount, date, reference, description) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(1, 1, 1500, '2026-01-05', 'INV-001', 'Bank transfer');
+    db.prepare('INSERT INTO customer_payments (id, customerId, amount, date, reference, description) VALUES (?, ?, ?, ?, ?, ?)')
+      .run(2, 2, 500, '2026-01-07', 'INV-002', 'Check payment');
 
     // Creditor payments
-    db.prepare('INSERT INTO creditor_payments (id, creditorId, amount, date, description) VALUES (?, ?, ?, ?, ?)').run(1, 1, 2000, '2026-01-10', 'Monthly installment');
+    db.prepare('INSERT INTO creditor_payments (id, creditorId, amount, date, description) VALUES (?, ?, ?, ?, ?)')
+      .run(1, 1, 2000, '2026-01-10', 'Monthly installment');
 
     // Debtor receipts
-    db.prepare('INSERT INTO debtor_receipts (id, debtorId, amount, date, description) VALUES (?, ?, ?, ?, ?)').run(1, 1, 100, '2026-01-08', 'First repayment');
+    db.prepare('INSERT INTO debtor_receipts (id, debtorId, amount, date, description) VALUES (?, ?, ?, ?, ?)')
+      .run(1, 1, 100, '2026-01-08', 'First repayment');
   });
 
   seed();
