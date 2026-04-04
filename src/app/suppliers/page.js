@@ -10,6 +10,7 @@ export default function SuppliersPage() {
     getSupplierBalance, setShowModal,
     setPaymentModal, newPurchase, setNewPurchase,
     deleteSupplier, setConfirmDelete,
+    setModalError,
   } = useApp();
 
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -42,7 +43,7 @@ export default function SuppliersPage() {
           {t.suppliers}{' '}
           <span className="text-orange-400 text-sm">({t.payables}: ₹{totalPayables.toLocaleString('en-IN')})</span>
         </h2>
-        <button onClick={() => setShowModal('supplier')} className="flex items-center gap-1 px-2 py-1 bg-orange-600 rounded text-xs">
+        <button onClick={() => { setModalError(null); setShowModal('supplier'); }} className="flex items-center gap-1 px-2 py-1 bg-orange-600 rounded text-xs">
           <Plus size={12} /> {t.add}
         </button>
       </div>
