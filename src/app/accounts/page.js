@@ -82,88 +82,85 @@ export default function AccountsPage() {
             </div>
           ) : (
             <div className="grid gap-2">
-              {filteredAccounts.map(account => {
-            const balance = getAccountBalance(account);
-            const isExpanded = expanded[account.id];
-
-            return (
-              <div key={account.id} className="border border-gray-600 rounded-xl p-3 bg-gray-800/50">
-                <div
-                  className="flex justify-between items-center cursor-pointer"
-                  onClick={() => toggleExpanded(account.id)}
-                >
-                  <div className="flex-1">
-                    <h3 className="font-semibold">{account.name}</h3>
-                    <p className="text-gray-400 text-xs mt-0.5">{account.description || t.noDescription || 'No description'}</p>
-                  </div>
-                  <div className="text-right mr-2">
-                    <p className={`font-bold ${balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {balance >= 0 ? '+' : ''}₹{Math.abs(balance).toLocaleString('en-IN')}
-                    </p>
-                  </div>
-                  {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </div>
-
-                {isExpanded && (
-                  <div className="mt-3 pt-3 border-t border-gray-600">
-                    {account.transactions && account.transactions.length > 0 ? (
-                      <div className="space-y-1">
-                        {account.transactions.map(tx => (
-                          <div key={tx.id} className="flex items-center justify-between text-xs py-1 gap-2">
-                            <div className="min-w-[80px] text-gray-300">{formatDateDisplay(tx.date)}</div>
-                            <div className="flex-1 mx-2 truncate text-gray-400">{tx.description || '-'}</div>
-                            <div className={tx.transactionType === 'receipt' ? 'text-emerald-400' : 'text-red-400'}>
-                              {tx.transactionType === 'receipt' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN')}
-                            </div>
-                            <div className="flex gap-1">
-                              <button
-                                type="button"
-                                onClick={() => setPaymentModal({ type: 'account-transaction', id: account.id, transaction: tx })}
-                                className="p-1 rounded bg-gray-700 hover:bg-gray-600"
-                                aria-label="Edit transaction"
-                              >
-                                <Edit3 size={12} />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setConfirmDelete({
-                                  message: `Delete transaction from ${account.name}?`,
-                                  onConfirm: () => deleteAccountTransaction(account.id, tx.id),
-                                })}
-                                className="p-1 rounded bg-gray-700 hover:bg-gray-600"
-                                aria-label="Delete transaction"
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-xs text-gray-400">{t.noTransactions || 'No transactions'}</p>
-                    )}
-                    <div className="mt-2 pt-2 border-t border-gray-600 flex gap-1">
-                      <button
-                        onClick={() => setPaymentModal({ type: 'account-transaction', id: account.id })}
-                        className="flex-1 px-2 py-1 bg-indigo-600 hover:bg-indigo-700 rounded text-xs flex items-center justify-center gap-1"
-                      >
-                        <Plus size={12} /> {t.add || 'Add'}
-                      </button>
-                      <button
-                        onClick={() => setConfirmDelete({
-                          message: `Delete account "${account.name}"? This will remove all transactions.`,
-                          onConfirm: () => deleteAccount(account.id),
-                        })}
-                        className="flex-1 px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-xs flex items-center justify-center gap-1"
-                      >
-                        <X size={12} /> {t.delete || 'Delete'}
-                      </button>
+              {filteredAccounts.map(account => (
+                <div key={account.id} className="border border-gray-600 rounded-xl p-3 bg-gray-800/50">
+                  <div
+                    className="flex justify-between items-center cursor-pointer"
+                    onClick={() => toggleExpanded(account.id)}
+                  >
+                    <div className="flex-1">
+                      <h3 className="font-semibold">{account.name}</h3>
+                      <p className="text-gray-400 text-xs mt-0.5">{account.description || t.noDescription || 'No description'}</p>
                     </div>
+                    <div className="text-right mr-2">
+                      <p className={`font-bold ${getAccountBalance(account) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {getAccountBalance(account) >= 0 ? '+' : ''}₹{Math.abs(getAccountBalance(account)).toLocaleString('en-IN')}
+                      </p>
+                    </div>
+                    {expanded[account.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                   </div>
-                )}
-              </div>
-            );
-          })}
+
+                  {expanded[account.id] && (
+                    <div className="mt-3 pt-3 border-t border-gray-600">
+                      {account.transactions && account.transactions.length > 0 ? (
+                        <div className="space-y-1">
+                          {account.transactions.map(tx => (
+                            <div key={tx.id} className="flex items-center justify-between text-xs py-1 gap-2">
+                              <div className="min-w-[80px] text-gray-300">{formatDateDisplay(tx.date)}</div>
+                              <div className="flex-1 mx-2 truncate text-gray-400">{tx.description || '-'}</div>
+                              <div className={tx.transactionType === 'receipt' ? 'text-emerald-400' : 'text-red-400'}>
+                                {tx.transactionType === 'receipt' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN')}
+                              </div>
+                              <div className="flex gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setPaymentModal({ type: 'account-transaction', id: account.id, transaction: tx })}
+                                  className="p-1 rounded bg-gray-700 hover:bg-gray-600"
+                                  aria-label="Edit transaction"
+                                >
+                                  <Edit3 size={12} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmDelete({
+                                    message: `Delete transaction from ${account.name}?`,
+                                    onConfirm: () => deleteAccountTransaction(account.id, tx.id),
+                                  })}
+                                  className="p-1 rounded bg-gray-700 hover:bg-gray-600"
+                                  aria-label="Delete transaction"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-400">{t.noTransactions || 'No transactions'}</p>
+                      )}
+                      <div className="mt-2 pt-2 border-t border-gray-600 flex gap-1">
+                        <button
+                          onClick={() => setPaymentModal({ type: 'account-transaction', id: account.id })}
+                          className="flex-1 px-2 py-1 bg-indigo-600 hover:bg-indigo-700 rounded text-xs flex items-center justify-center gap-1"
+                        >
+                          <Plus size={12} /> {t.add || 'Add'}
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete({
+                            message: `Delete account "${account.name}"? This will remove all transactions.`,
+                            onConfirm: () => deleteAccount(account.id),
+                          })}
+                          className="flex-1 px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-xs flex items-center justify-center gap-1"
+                        >
+                          <X size={12} /> {t.delete || 'Delete'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
