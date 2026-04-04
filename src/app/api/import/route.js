@@ -7,18 +7,61 @@ function cleanAmount(value) {
 
 function cleanDate(dateStr) {
   if (!dateStr) return null;
+
+  const trimmed = String(dateStr).trim();
   
   // If already YYYY-MM-DD format
-  if (/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
-    return dateStr.substring(0, 10);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
   }
-  
-  // Try other formats
-  if (/^\d{1,2}[/-]\d{1,2}[/-]\d{2,4}/.test(dateStr)) {
-    const d = new Date(dateStr.replace(/-/g, '/'));
-    return Number.isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
+
+  // Handle D/M/YYYY or D-M-YYYY and also DD/MM/YYYY formats without timezone conversion
+  const normalized = trimmed.replace(/-/g, '/');
+  const parts = normalized.split('/');
+  if (parts.length === 3) {
+    let [part1, part2, part3] = parts.map(p => p.trim());
+    if (!/^\d{1,4}$/.test(part1) || !/^\d{1,2}$/.test(part2) || !/^\d{2,4}$/.test(part3)) {
+      return null;
+    }
+
+    let year;
+    let month;
+    let day;
+
+    if (part1.length === 4) {
+      year = part1;
+      month = part2.padStart(2, '0');
+      day = part3.padStart(2, '0');
+    } else {
+      day = part1.padStart(2, '0');
+      month = part2.padStart(2, '0');
+      year = part3.length === 2 ? `20${part3}` : part3.padStart(4, '0');
+    }
+
+    const numericYear = Number(year);
+    const numericMonth = Number(month);
+    const numericDay = Number(day);
+    if (
+      numericYear < 1000 ||
+      numericMonth < 1 || numericMonth > 12 ||
+      numericDay < 1 || numericDay > 31
+    ) {
+      return null;
+    }
+
+    // Validate the date components without applying timezone shifts.
+    const utcDate = new Date(Date.UTC(numericYear, numericMonth - 1, numericDay));
+    if (
+      utcDate.getUTCFullYear() !== numericYear ||
+      utcDate.getUTCMonth() + 1 !== numericMonth ||
+      utcDate.getUTCDate() !== numericDay
+    ) {
+      return null;
+    }
+
+    return `${year}-${month}-${day}`;
   }
-  
+
   return null;
 }
 

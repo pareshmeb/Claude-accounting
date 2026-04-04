@@ -1,7 +1,11 @@
 import Database from 'better-sqlite3';
+import fs from 'fs';
+import os from 'os';
 import path from 'path';
 
-const dbPath = path.join(process.cwd(), 'accubooks.db');
+const dbDir = path.join(os.homedir(), 'Documents', 'acc');
+fs.mkdirSync(dbDir, { recursive: true });
+const dbPath = path.join(dbDir, 'accubooks.db');
 const db = new Database(dbPath);
 
 db.pragma('journal_mode = WAL');

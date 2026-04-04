@@ -6,6 +6,13 @@ import * as XLSX from 'xlsx';
 
 const SKIP_SHEETS = ['MASTER', 'Names', 'INDEX'];
 
+function formatLocalDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function parseExcel(buffer) {
   const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
   console.log('parseExcel: workbook sheets', wb.SheetNames);
@@ -47,18 +54,23 @@ function parseExcel(buffer) {
       const dateRaw = row[0];
       let date;
       if (dateRaw instanceof Date) {
-        date = dateRaw.toISOString().split('T')[0];
-      } else if (typeof dateRaw === 'string' && dateRaw.match(/^\d{4}-\d{2}-\d{2}/)) {
-        date = dateRaw.substring(0, 10);
-      } else if (typeof dateRaw === 'string' && dateRaw.match(/^\d+\/\d+\/\d+/)) {
-        const d = new Date(dateRaw);
-        date = isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
+        date = formatLocalDate(dateRaw);
+      } else if (typeof dateRaw === 'string' && /^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(dateRaw)) {
+        const parts = dateRaw.split('/');
+        const month = Number(parts[0]);
+        const day = Number(parts[1]);
+        let year = Number(parts[2]);
+        if (year < 100) {
+          year += 2000;
+        }
+        const d = new Date(year, month - 1, day, 11, 0, 0);
+        date = isNaN(d.getTime()) ? null : formatLocalDate(d);
       } else {
         // Try parsing Excel serial number
         const serial = parseFloat(dateRaw);
         if (!isNaN(serial) && serial > 10000) {
           const d = new Date((serial - 25569) * 86400 * 1000);
-          date = d.toISOString().split('T')[0];
+          date = formatLocalDate(d);
         } else {
           console.log(`parseExcel: sheet ${sheetName} row ${i} date parse failed`, dateRaw);
           continue;
