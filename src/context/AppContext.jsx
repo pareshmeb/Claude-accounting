@@ -14,6 +14,7 @@ export function AppProvider({ children }) {
   const [customers, setCustomers] = useState([]);
   const [creditors, setCreditors] = useState([]);
   const [debtors, setDebtors] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [purchases, setPurchases] = useState([]);
   const [sales, setSales] = useState([]);
   const [supplierPayments, setSupplierPayments] = useState([]);
@@ -27,6 +28,7 @@ export function AppProvider({ children }) {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentDesc, setPaymentDesc] = useState('');
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
   // Form states
   const [newSupplier, setNewSupplier] = useState({ name: '', email: '', phone: '', address: '' });
@@ -40,29 +42,21 @@ export function AppProvider({ children }) {
   // Fetch all data on mount
   useEffect(() => {
     Promise.all([
-      fetch('/api/transactions').then(r => r.json()),
       fetch('/api/suppliers').then(r => r.json()),
       fetch('/api/customers').then(r => r.json()),
-      fetch('/api/creditors').then(r => r.json()),
-      fetch('/api/debtors').then(r => r.json()),
+      fetch('/api/accounts').then(r => r.json()),
       fetch('/api/purchases').then(r => r.json()),
       fetch('/api/sales').then(r => r.json()),
       fetch('/api/supplier-payments').then(r => r.json()),
       fetch('/api/customer-payments').then(r => r.json()),
-      fetch('/api/creditor-payments').then(r => r.json()),
-      fetch('/api/debtor-receipts').then(r => r.json()),
-    ]).then(([tx, sup, cust, cred, debt, purch, sal, sp, cp, credp, dr]) => {
-      setTransactions(tx);
+    ]).then(([sup, cust, acc, purch, sal, sp, cp]) => {
       setSuppliers(sup);
       setCustomers(cust);
-      setCreditors(cred);
-      setDebtors(debt);
+      setAccounts(acc);
       setPurchases(purch);
       setSales(sal);
       setSupplierPayments(sp);
       setCustomerPayments(cp);
-      setCreditorPayments(credp);
-      setDebtorReceipts(dr);
       setLoading(false);
     });
   }, []);
@@ -100,8 +94,14 @@ export function AppProvider({ children }) {
   const addSupplierAction = async () => {
     if (!newSupplier.name) return;
     const supplier = { ...newSupplier, id: Date.now() };
-    await fetch('/api/suppliers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(supplier) });
-    setSuppliers([...suppliers, supplier]);
+    const res = await fetch('/api/suppliers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(supplier) });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ error: 'Failed to create supplier' }));
+      console.error('Supplier create failed:', error);
+      return;
+    }
+    const createdSupplier = await res.json();
+    setSuppliers([...suppliers, createdSupplier]);
     setNewSupplier({ name: '', email: '', phone: '', address: '' });
     setShowModal(null);
   };
@@ -109,27 +109,15 @@ export function AppProvider({ children }) {
   const addCustomerAction = async () => {
     if (!newCustomer.name) return;
     const customer = { ...newCustomer, id: Date.now() };
-    await fetch('/api/customers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(customer) });
-    setCustomers([...customers, customer]);
+    const res = await fetch('/api/customers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(customer) });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ error: 'Failed to create customer' }));
+      console.error('Customer create failed:', error);
+      return;
+    }
+    const createdCustomer = await res.json();
+    setCustomers([...customers, createdCustomer]);
     setNewCustomer({ name: '', email: '', phone: '', address: '' });
-    setShowModal(null);
-  };
-
-  const addCreditorAction = async () => {
-    if (!newCreditor.name || !newCreditor.amount) return;
-    const creditor = { ...newCreditor, id: Date.now(), amount: parseFloat(newCreditor.amount), paid: 0 };
-    await fetch('/api/creditors', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(creditor) });
-    setCreditors([...creditors, creditor]);
-    setNewCreditor({ name: '', amount: '', dueDate: '', description: '' });
-    setShowModal(null);
-  };
-
-  const addDebtorAction = async () => {
-    if (!newDebtor.name || !newDebtor.amount) return;
-    const debtor = { ...newDebtor, id: Date.now(), amount: parseFloat(newDebtor.amount), received: 0 };
-    await fetch('/api/debtors', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(debtor) });
-    setDebtors([...debtors, debtor]);
-    setNewDebtor({ name: '', amount: '', dueDate: '', description: '' });
     setShowModal(null);
   };
 
@@ -152,15 +140,6 @@ export function AppProvider({ children }) {
     await fetch('/api/sales', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sale) });
     setSales([...sales, sale]);
     setNewSale({ customerId: '', date: new Date().toISOString().split('T')[0], description: '', items: [{ name: '', qty: 1, price: '' }] });
-    setShowModal(null);
-  };
-
-  const addTransactionAction = async () => {
-    if (!newTx.amount || newTx.category === '') return;
-    const tx = { ...newTx, id: Date.now(), amount: parseFloat(newTx.amount), category: parseInt(newTx.category) };
-    await fetch('/api/transactions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tx) });
-    setTransactions([...transactions, tx]);
-    setNewTx({ type: 'expense', amount: '', category: '', description: '', date: new Date().toISOString().split('T')[0] });
     setShowModal(null);
   };
 
@@ -259,24 +238,110 @@ export function AppProvider({ children }) {
     else setNewPurchase({ ...newPurchase, items: newPurchase.items.filter((_, i) => i !== idx) });
   };
 
-  const deleteTransaction = async (id) => {
-    await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
-    setTransactions(transactions.filter(x => x.id !== id));
+  const deleteSupplier = async (id) => {
+    await fetch(`/api/suppliers/${id}`, { method: 'DELETE' });
+    setSuppliers(prev => prev.filter(x => x.id !== id));
+    setPurchases(prev => prev.filter(x => x.supplierId !== id));
+    setSupplierPayments(prev => prev.filter(x => x.supplierId !== id));
   };
 
-  const deleteCreditor = async (id) => {
-    await fetch(`/api/creditors/${id}`, { method: 'DELETE' });
-    setCreditors(creditors.filter(x => x.id !== id));
+  const deleteCustomer = async (id) => {
+    await fetch(`/api/customers/${id}`, { method: 'DELETE' });
+    setCustomers(prev => prev.filter(x => x.id !== id));
+    setSales(prev => prev.filter(x => x.customerId !== id));
+    setCustomerPayments(prev => prev.filter(x => x.customerId !== id));
   };
 
-  const deleteDebtor = async (id) => {
-    await fetch(`/api/debtors/${id}`, { method: 'DELETE' });
-    setDebtors(debtors.filter(x => x.id !== id));
+  const deletePurchase = async (id) => {
+    await fetch(`/api/purchases/${id}`, { method: 'DELETE' });
+    setPurchases(prev => prev.filter(x => x.id !== id));
+  };
+
+  const deleteSale = async (id) => {
+    await fetch(`/api/sales/${id}`, { method: 'DELETE' });
+    setSales(prev => prev.filter(x => x.id !== id));
+  };
+
+  // Account helpers
+  const getAccountBalance = (account) => {
+    if (!account.transactions) return 0;
+    const payments = account.transactions.filter(t => t.transactionType === 'payment').reduce((s, t) => s + t.amount, 0);
+    const receipts = account.transactions.filter(t => t.transactionType === 'receipt').reduce((s, t) => s + t.amount, 0);
+    
+    if (account.type === 'creditor') {
+      return payments - receipts;
+    } else if (account.type === 'debtor') {
+      return receipts - payments;
+    } else {
+      // 'both'
+      return Math.abs(payments - receipts);
+    }
+  };
+
+  const addAccountAction = async (name, type, totalAmount, dueDate, description) => {
+    const newAcc = { name, type, totalAmount: parseFloat(totalAmount) || 0, dueDate, description, id: Date.now() };
+    const res = await fetch('/api/accounts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newAcc) });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ error: 'Failed to create account' }));
+      console.error('Account create failed:', error);
+      return;
+    }
+    const createdAccount = await res.json();
+    setAccounts([...accounts, createdAccount]);
+  };
+
+  const deleteAccount = async (id) => {
+    await fetch(`/api/accounts/${id}`, { method: 'DELETE' });
+    setAccounts(prev => prev.filter(x => x.id !== id));
+  };
+
+  const addAccountTransaction = async (accountId, transactionType, amount, date, description) => {
+    const tx = { transactionType, amount: parseFloat(amount), date, description };
+    const res = await fetch(`/api/accounts/${accountId}/transactions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tx) });
+    if (!res.ok) throw new Error('Failed to add transaction');
+    const created = await res.json();
+
+    setAccounts(prev => prev.map(acc => {
+      if (acc.id === accountId) {
+        return { ...acc, transactions: [...(acc.transactions || []), created] };
+      }
+      return acc;
+    }));
+  };
+
+  const updateAccountTransaction = async (accountId, transactionId, transactionType, amount, date, description) => {
+    const tx = { transactionType, amount: parseFloat(amount), date, description };
+    const res = await fetch(`/api/accounts/${accountId}/transactions/${transactionId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(tx) });
+    if (!res.ok) throw new Error('Failed to update transaction');
+    const updated = await res.json();
+
+    setAccounts(prev => prev.map(acc => {
+      if (acc.id === accountId) {
+        return {
+          ...acc,
+          transactions: (acc.transactions || []).map(t => t.id === transactionId ? updated : t),
+        };
+      }
+      return acc;
+    }));
+    return updated;
+  };
+
+  const deleteAccountTransaction = async (accountId, transactionId) => {
+    const res = await fetch(`/api/accounts/${accountId}/transactions/${transactionId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete transaction');
+
+    setAccounts(prev => prev.map(acc => {
+      if (acc.id === accountId) {
+        return { ...acc, transactions: (acc.transactions || []).filter(t => t.id !== transactionId) };
+      }
+      return acc;
+    }));
   };
 
   const value = {
     lang, setLang, t, loading,
-    transactions, suppliers, customers, creditors, debtors,
+    transactions, suppliers, customers, creditors, debtors, accounts,
     purchases, sales,
     supplierPayments, customerPayments, creditorPayments, debtorReceipts,
     showModal, setShowModal,
@@ -293,17 +358,18 @@ export function AppProvider({ children }) {
     newSale, setNewSale,
     newTx, setNewTx,
     getTotal, getSupplier, getCustomer, getCategoryName,
-    getSupplierBalance, getCustomerBalance,
+    getSupplierBalance, getCustomerBalance, getAccountBalance,
     totalIncome, totalExpense, balance,
     totalPayables, totalReceivables,
     totalSalesAmt, totalPurchasesAmt,
     totalCreditorOwed, totalDebtorOwed,
     addSupplierAction, addCustomerAction,
-    addCreditorAction, addDebtorAction,
+    addAccountAction, addAccountTransaction, updateAccountTransaction, deleteAccountTransaction,
     addPurchaseAction, addSaleAction,
-    addTransactionAction, makePaymentAction,
+    makePaymentAction,
     addItem, updateItem, removeItem,
-    deleteTransaction, deleteCreditor, deleteDebtor,
+    confirmDelete, setConfirmDelete,
+    deleteSupplier, deleteCustomer, deletePurchase, deleteSale, deleteAccount,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

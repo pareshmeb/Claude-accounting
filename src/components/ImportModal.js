@@ -8,17 +8,25 @@ const SKIP_SHEETS = ['MASTER', 'Names', 'INDEX'];
 
 function parseExcel(buffer) {
   const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
+  console.log('parseExcel: workbook sheets', wb.SheetNames);
   const accounts = [];
 
   for (const sheetName of wb.SheetNames) {
-    if (SKIP_SHEETS.includes(sheetName)) continue;
+    const isSkipped = SKIP_SHEETS.includes(sheetName);
+    console.log(`parseExcel: checking sheet ${sheetName} skipped=${isSkipped}`);
+    if (isSkipped) continue;
 
     const ws = wb.Sheets[sheetName];
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, dateNF: 'yyyy-mm-dd' });
+    console.log(`parseExcel: sheet ${sheetName} row count`, rows.length, 'sample', rows.slice(0, 8));
 
     // Row 2 (index 1): "Account of" | <Name>
     const name = rows[1]?.[1] || sheetName;
-    if (!name) continue;
+    console.log(`parseExcel: sheet ${sheetName} parsed name`, name);
+    if (!name) {
+      console.log(`parseExcel: sheet ${sheetName} no name found, skipping`);
+      continue;
+    }
 
     // Row 6+ (index 5+): data rows (Date, Particulars, Received, Payment, Balance)
     const entries = [];
@@ -27,7 +35,14 @@ function parseExcel(buffer) {
 
     for (let i = 5; i < rows.length; i++) {
       const row = rows[i];
-      if (!row || !row[0]) continue; // skip empty rows (no date)
+      if (!row || row.every(cell => !cell || String(cell).trim() === '')) {
+        //console.log(`parseExcel: sheet ${sheetName} skipping row ${i} completely empty`, row);
+        continue;
+      }
+      if (!row[0]) {
+        //console.log(`parseExcel: sheet ${sheetName} skipping row ${i} missing date`, row);
+        continue;
+      }
 
       const dateRaw = row[0];
       let date;
@@ -45,37 +60,37 @@ function parseExcel(buffer) {
           const d = new Date((serial - 25569) * 86400 * 1000);
           date = d.toISOString().split('T')[0];
         } else {
+          console.log(`parseExcel: sheet ${sheetName} row ${i} date parse failed`, dateRaw);
           continue;
         }
       }
 
-      if (!date) continue;
+      if (!date) {
+        console.log(`parseExcel: sheet ${sheetName} row ${i} invalid date`, dateRaw);
+        continue;
+      }
 
       const description = row[1] || '';
-      const received = parseFloat(row[2]) || 0;
-      const payment = parseFloat(row[3]) || 0;
-
-      if (received === 0 && payment === 0) continue;
+      const received = parseFloat(String(row[2] || '').replace(/[₹\s,]/g, '')) || 0;
+      const payment = parseFloat(String(row[3] || '').replace(/[₹\s,]/g, '')) || 0;
+      if (received === 0 && payment === 0) {
+        console.log(`parseExcel: sheet ${sheetName} row ${i} zero values`, { received, payment, row });
+        continue;
+      }
 
       totalReceived += received;
       totalPayment += payment;
       entries.push({ date, description, received, payment });
     }
 
+    console.log(`parseExcel: sheet ${sheetName} entries length`, entries.length);
     if (entries.length === 0) continue;
 
+    // Calculate net balance (positive = money owed to us, negative = we owe money)
     const balance = totalReceived - totalPayment;
-    // Positive balance = we owe them = Creditor
-    // Negative balance = they owe us = Debtor
-    const type = balance >= 0 ? 'creditor' : 'debtor';
-    const amount = type === 'creditor' ? totalReceived : totalPayment;
-    const paidOrReceived = type === 'creditor' ? totalPayment : totalReceived;
 
     accounts.push({
       name,
-      type,
-      amount,
-      paidOrReceived,
       balance: Math.abs(balance),
       totalReceived,
       totalPayment,
@@ -83,6 +98,7 @@ function parseExcel(buffer) {
     });
   }
 
+  console.log('parseExcel: accounts parsed', accounts.length);
   return accounts;
 }
 
@@ -176,26 +192,25 @@ export default function ImportModal() {
                 <thead>
                   <tr className="text-gray-400 border-b border-gray-700">
                     <th className="text-left p-1.5">{t.name}</th>
-                    <th className="text-left p-1.5">{t.type}</th>
-                    <th className="text-right p-1.5">{t.balance}</th>
+                    <th className="text-right p-1.5">Balance</th>
                     <th className="text-right p-1.5">{t.entries}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {accounts.map((acc, i) => (
-                    <tr key={i} className="border-b border-gray-700/50">
-                      <td className="p-1.5 font-medium">{acc.name}</td>
-                      <td className="p-1.5">
-                        <span className={`px-1.5 py-0.5 rounded text-xs ${acc.type === 'creditor' ? 'bg-orange-500/20 text-orange-400' : 'bg-cyan-500/20 text-cyan-400'}`}>
-                          {acc.type === 'creditor' ? t.creditor : t.debtor}
-                        </span>
-                      </td>
-                      <td className={`p-1.5 text-right font-semibold ${acc.type === 'creditor' ? 'text-orange-400' : 'text-cyan-400'}`}>
-                        ₹{acc.balance.toLocaleString('en-IN')}
-                      </td>
-                      <td className="p-1.5 text-right text-gray-400">{acc.entries.length}</td>
-                    </tr>
-                  ))}
+                  {accounts.map((acc, i) => {
+                    const netBalance = acc.totalReceived - acc.totalPayment;
+                    const balanceClass = netBalance >= 0 ? 'text-emerald-400' : 'text-red-400';
+                    const balanceText = `${netBalance >= 0 ? '+' : ''}₹${Math.abs(netBalance).toLocaleString('en-IN')}`;
+                    return (
+                      <tr key={i} className="border-b border-gray-700/50">
+                        <td className="p-1.5 font-medium">{acc.name}</td>
+                        <td className={`p-1.5 text-right font-semibold ${balanceClass}`}>
+                          {balanceText}
+                        </td>
+                        <td className="p-1.5 text-right text-gray-400">{acc.entries.length}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

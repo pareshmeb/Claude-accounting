@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import { Wallet, LayoutDashboard, List, Building, Users, Package, ShoppingCart, UserX, UserCheck, CircleDot, Globe, Upload } from 'lucide-react';
+import { Wallet, LayoutDashboard, Building, Users, Package, ShoppingCart, CircleDot, Globe, Upload } from 'lucide-react';
 
 export default function Sidebar() {
   const { t, lang, setLang, setShowImportModal } = useApp();
@@ -10,13 +10,11 @@ export default function Sidebar() {
 
   const navItems = [
     { icon: LayoutDashboard, label: t.dashboard, href: '/' },
-    { icon: List, label: t.transactions, href: '/transactions' },
+    { icon: Wallet, label: 'Accounts', href: '/accounts' },
     { icon: Building, label: t.suppliers, href: '/suppliers' },
     { icon: Users, label: t.customers, href: '/customers' },
     { icon: Package, label: t.purchases, href: '/purchases' },
     { icon: ShoppingCart, label: t.sales, href: '/sales' },
-    { icon: UserX, label: t.creditors, href: '/creditors' },
-    { icon: UserCheck, label: t.debtors, href: '/debtors' },
     { icon: CircleDot, label: t.reports, href: '/reports' },
   ];
 

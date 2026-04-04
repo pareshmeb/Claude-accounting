@@ -2,12 +2,13 @@
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import StatusBadge from '@/components/StatusBadge';
-import { Plus, CreditCard } from 'lucide-react';
+import { Plus, CreditCard, X } from 'lucide-react';
 
 export default function PurchasesPage() {
   const {
     t, purchases, getTotal, getSupplier,
     setShowModal, setPaymentModal,
+    deletePurchase, setConfirmDelete,
   } = useApp();
 
   const router = useRouter();
@@ -61,6 +62,12 @@ export default function PurchasesPage() {
                       <CreditCard size={12} />
                     </button>
                   )}
+                  <button
+                    onClick={() => setConfirmDelete({ message: t.deletePurchaseConfirm.replace('{ref}', p.billNo), onConfirm: () => deletePurchase(p.id) })}
+                    className="p-1 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400"
+                  >
+                    <X size={12} />
+                  </button>
                 </td>
               </tr>
             ))}

@@ -2,12 +2,13 @@
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
 import StatusBadge from '@/components/StatusBadge';
-import { Plus, CreditCard } from 'lucide-react';
+import { Plus, CreditCard, X } from 'lucide-react';
 
 export default function SalesPage() {
   const {
     t, sales, getTotal, getCustomer,
     setShowModal, setPaymentModal,
+    deleteSale, setConfirmDelete,
   } = useApp();
 
   const router = useRouter();
@@ -61,6 +62,12 @@ export default function SalesPage() {
                       <CreditCard size={12} />
                     </button>
                   )}
+                  <button
+                    onClick={() => setConfirmDelete({ message: t.deleteSaleConfirm.replace('{ref}', s.invoiceNo), onConfirm: () => deleteSale(s.id) })}
+                    className="p-1 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400"
+                  >
+                    <X size={12} />
+                  </button>
                 </td>
               </tr>
             ))}
