@@ -3,7 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-const dbDir = path.join(os.homedir(), 'Documents', 'acc');
+const dbDir = 'C:\\Users\\ashish\\OneDrive\\Documents\\acc';
 fs.mkdirSync(dbDir, { recursive: true });
 const dbPath = path.join(dbDir, 'accubooks.db');
 const db = new Database(dbPath);
