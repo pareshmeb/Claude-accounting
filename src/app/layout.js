@@ -3,6 +3,7 @@ import { AppProvider } from '@/context/AppContext';
 import Sidebar from '@/components/Sidebar';
 import AppModal from '@/components/AppModal';
 import PaymentModal from '@/components/PaymentModal';
+import ImportModal from '@/components/ImportModal';
 
 export const metadata = {
   title: 'AccuBooks - Accounting App',
@@ -22,6 +23,7 @@ export default function RootLayout({ children }) {
           </div>
           <AppModal />
           <PaymentModal />
+          <ImportModal />
         </AppProvider>
       </body>
     </html>
