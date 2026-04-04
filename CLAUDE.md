@@ -15,7 +15,7 @@ No test framework is configured yet.
 
 ## Architecture
 
-AccuBooks is a client-side-only accounting application built with **Next.js 16 (App Router)** and **React 19**. All data lives in React state—there is no backend, database, or API layer. Refreshing the browser resets to initial sample data.
+AccuBooks is a client-side-only accounting application built with **Next.js 16 (App Router)** and **React 19**. Data is stored in a local SQLite database located at `C:\Users\ashish\OneDrive\Documents\acc\accubooks.db`. The database persists data across browser sessions.
 
 ### State Management
 
