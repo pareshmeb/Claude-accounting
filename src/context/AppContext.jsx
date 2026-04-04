@@ -22,6 +22,7 @@ export function AppProvider({ children }) {
   const [debtorReceipts, setDebtorReceipts] = useState([]);
 
   const [showModal, setShowModal] = useState(null);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [paymentModal, setPaymentModal] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentDesc, setPaymentDesc] = useState('');
@@ -279,6 +280,7 @@ export function AppProvider({ children }) {
     purchases, sales,
     supplierPayments, customerPayments, creditorPayments, debtorReceipts,
     showModal, setShowModal,
+    showImportModal, setShowImportModal,
     paymentModal, setPaymentModal,
     paymentAmount, setPaymentAmount,
     paymentDesc, setPaymentDesc,

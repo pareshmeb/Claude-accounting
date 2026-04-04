@@ -2,10 +2,10 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import { Wallet, LayoutDashboard, List, Building, Users, Package, ShoppingCart, UserX, UserCheck, CircleDot, Globe } from 'lucide-react';
+import { Wallet, LayoutDashboard, List, Building, Users, Package, ShoppingCart, UserX, UserCheck, CircleDot, Globe, Upload } from 'lucide-react';
 
 export default function Sidebar() {
-  const { t, lang, setLang } = useApp();
+  const { t, lang, setLang, setShowImportModal } = useApp();
   const pathname = usePathname();
 
   const navItems = [
@@ -50,6 +50,12 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
+      <button
+        onClick={() => setShowImportModal(true)}
+        className="flex items-center justify-center gap-1 mt-2 p-1.5 bg-emerald-600 hover:bg-emerald-700 rounded text-xs font-medium"
+      >
+        <Upload size={12} /> {t.importData}
+      </button>
     </div>
   );
 }
