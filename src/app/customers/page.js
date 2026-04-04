@@ -10,6 +10,7 @@ export default function CustomersPage() {
     getCustomerBalance, setShowModal,
     setPaymentModal, newSale, setNewSale,
     deleteCustomer, setConfirmDelete,
+    setModalError,
   } = useApp();
 
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -42,7 +43,7 @@ export default function CustomersPage() {
           {t.customers}{' '}
           <span className="text-cyan-400 text-sm">({t.receivables}: ₹{totalReceivables.toLocaleString('en-IN')})</span>
         </h2>
-        <button onClick={() => setShowModal('customer')} className="flex items-center gap-1 px-2 py-1 bg-cyan-600 rounded text-xs">
+        <button onClick={() => { setModalError(null); setShowModal('customer'); }} className="flex items-center gap-1 px-2 py-1 bg-cyan-600 rounded text-xs">
           <Plus size={12} /> {t.add}
         </button>
       </div>

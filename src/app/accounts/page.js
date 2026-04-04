@@ -5,7 +5,7 @@ import { Plus, X, ChevronDown, ChevronUp, Edit3, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function AccountsPage() {
-  const { t, accounts, deleteAccount, deleteAccountTransaction, setConfirmDelete, setPaymentModal, setShowModal } = useApp();
+  const { t, accounts, deleteAccount, deleteAccountTransaction, setConfirmDelete, setPaymentModal, setShowModal, setModalError } = useApp();
   const [expanded, setExpanded] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -43,7 +43,7 @@ export default function AccountsPage() {
             ({t.balance || 'Balance'}: {totalBalance >= 0 ? '+' : ''}₹{Math.abs(totalBalance).toLocaleString('en-IN')})
           </span>
         </h2>
-        <button onClick={() => setShowModal('account')} className="flex items-center gap-1 px-2 py-1 bg-emerald-600 rounded text-xs">
+        <button onClick={() => { setModalError(null); setShowModal('account'); }} className="flex items-center gap-1 px-2 py-1 bg-emerald-600 rounded text-xs">
           <Plus size={12} /> {t.addAccount}
         </button>
       </div>

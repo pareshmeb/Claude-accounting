@@ -100,11 +100,13 @@ export function AppProvider({ children }) {
     if (!res.ok) {
       const error = await res.json().catch(() => ({ error: 'Failed to create supplier' }));
       console.error('Supplier create failed:', error);
+      setModalError(error.error || 'Failed to create supplier');
       return;
     }
     const createdSupplier = await res.json();
     setSuppliers([...suppliers, createdSupplier]);
     setNewSupplier({ name: '', email: '', phone: '', address: '' });
+    setModalError(null);
     setShowModal(null);
   };
 
@@ -115,11 +117,13 @@ export function AppProvider({ children }) {
     if (!res.ok) {
       const error = await res.json().catch(() => ({ error: 'Failed to create customer' }));
       console.error('Customer create failed:', error);
+      setModalError(error.error || 'Failed to create customer');
       return;
     }
     const createdCustomer = await res.json();
     setCustomers([...customers, createdCustomer]);
     setNewCustomer({ name: '', email: '', phone: '', address: '' });
+    setModalError(null);
     setShowModal(null);
   };
 
@@ -386,6 +390,7 @@ export function AppProvider({ children }) {
     makePaymentAction,
     addItem, updateItem, removeItem,
     confirmDelete, setConfirmDelete,
+    modalError, setModalError,
     deleteSupplier, deleteCustomer, deletePurchase, deleteSale, deleteAccount,
   };
 
