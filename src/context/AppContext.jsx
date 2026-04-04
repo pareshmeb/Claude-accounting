@@ -36,7 +36,7 @@ export function AppProvider({ children }) {
   const [newCustomer, setNewCustomer] = useState({ name: '', email: '', phone: '', address: '' });
   const [newCreditor, setNewCreditor] = useState({ name: '', amount: '', dueDate: '', description: '' });
   const [newDebtor, setNewDebtor] = useState({ name: '', amount: '', dueDate: '', description: '' });
-  const [newAccount, setNewAccount] = useState({ name: '', totalAmount: '', dueDate: '', description: '' });
+  const [newAccount, setNewAccount] = useState({ name: '', description: '' });
   const [newPurchase, setNewPurchase] = useState({ supplierId: '', date: new Date().toISOString().split('T')[0], description: '', items: [{ name: '', qty: 1, price: '' }] });
   const [newSale, setNewSale] = useState({ customerId: '', date: new Date().toISOString().split('T')[0], description: '', items: [{ name: '', qty: 1, price: '' }] });
   const [newTx, setNewTx] = useState({ type: 'expense', amount: '', category: '', description: '', date: new Date().toISOString().split('T')[0] });
@@ -262,7 +262,7 @@ export function AppProvider({ children }) {
     if (!newAccount.name) return;
     const account = {
       ...newAccount,
-      totalAmount: parseFloat(newAccount.totalAmount) || 0,
+      totalAmount: 0,
       totalTransacted: 0,
       id: Date.now(),
     };
@@ -279,7 +279,7 @@ export function AppProvider({ children }) {
     }
     const createdAccount = await res.json();
     setAccounts([...accounts, createdAccount]);
-    setNewAccount({ name: '', totalAmount: '', dueDate: '', description: '' });
+    setNewAccount({ name: '', description: '' });
     setModalError(null);
     setShowModal(null);
   };

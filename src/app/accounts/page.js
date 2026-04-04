@@ -145,15 +145,17 @@ export default function AccountsPage() {
                         >
                           <Plus size={12} /> {t.add || 'Add'}
                         </button>
-                        <button
-                          onClick={() => setConfirmDelete({
-                            message: `Delete account "${account.name}"? This will remove all transactions.`,
-                            onConfirm: () => deleteAccount(account.id),
-                          })}
-                          className="flex-1 px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-xs flex items-center justify-center gap-1"
-                        >
-                          <X size={12} /> {t.delete || 'Delete'}
-                        </button>
+                        {(!account.transactions || account.transactions.length === 0) && (
+                          <button
+                            onClick={() => setConfirmDelete({
+                              message: `Delete account "${account.name}"?`,
+                              onConfirm: () => deleteAccount(account.id),
+                            })}
+                            className="flex-1 px-2 py-1 bg-red-600 hover:bg-red-700 rounded text-xs flex items-center justify-center gap-1"
+                          >
+                            <X size={12} /> {t.delete || 'Delete'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
