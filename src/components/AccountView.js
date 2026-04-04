@@ -1,5 +1,6 @@
 'use client';
 import { useApp } from '@/context/AppContext';
+import { formatDateDisplay } from '@/lib/date-helpers';
 import { ArrowLeft, Plus, CreditCard, Download } from 'lucide-react';
 
 export default function AccountView({ account, onBack }) {
@@ -34,7 +35,7 @@ export default function AccountView({ account, onBack }) {
   const exportCsv = () => {
     const headers = [t.date, t.type, t.ref, t.description, t.debit, t.credit, t.balance];
     const rows = ledger.map(l => [
-      l.date,
+      formatDateDisplay(l.date),
       l.type === 'payment' ? t.payment : l.type === 'purchase' ? t.purchase : t.sale,
       l.ref || '',
       l.desc || '',
@@ -134,7 +135,7 @@ export default function AccountView({ account, onBack }) {
             <tbody>
               {ledger.map((l, i) => (
                 <tr key={i} className="border-t border-gray-700">
-                  <td className="p-1.5 text-gray-400">{l.date}</td>
+                  <td className="p-1.5 text-gray-400">{formatDateDisplay(l.date)}</td>
                   <td className="p-1.5">
                     <span className={`px-1 py-0.5 rounded text-xs ${
                       l.type === 'payment'

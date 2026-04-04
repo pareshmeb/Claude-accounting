@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import AccountView from '@/components/AccountView';
-import { Plus, X } from 'lucide-react';
+import { Plus, Search, X } from 'lucide-react';
 
 export default function SuppliersPage() {
   const {

@@ -1,6 +1,7 @@
 'use client';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
+import { formatDateDisplay } from '@/lib/date-helpers';
 import StatusBadge from '@/components/StatusBadge';
 import { Plus, CreditCard, X } from 'lucide-react';
 
@@ -43,7 +44,7 @@ export default function PurchasesPage() {
                   {getSupplier(p.supplierId)?.name}
                 </td>
                 <td className="p-2 text-gray-300 max-w-32 truncate" title={p.description}>{p.description || '-'}</td>
-                <td className="p-2 text-gray-400">{p.date}</td>
+                <td className="p-2 text-gray-400">{formatDateDisplay(p.date)}</td>
                 <td className="p-2 text-right text-purple-400 font-semibold">₹{getTotal(p.items).toLocaleString('en-IN')}</td>
                 <td className="p-2 text-right text-emerald-400">₹{p.paidAmount.toLocaleString('en-IN')}</td>
                 <td className="p-2"><StatusBadge status={p.status} /></td>
