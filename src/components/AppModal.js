@@ -8,12 +8,14 @@ export default function AppModal() {
     suppliers, customers,
     newSupplier, setNewSupplier,
     newCustomer, setNewCustomer,
+    newAccount, setNewAccount,
     newCreditor, setNewCreditor,
     newDebtor, setNewDebtor,
     newPurchase, setNewPurchase,
     newSale, setNewSale,
     newTx, setNewTx,
     addSupplierAction, addCustomerAction,
+    addAccountAction,
     addCreditorAction, addDebtorAction,
     addPurchaseAction, addSaleAction,
     addTransactionAction,
@@ -25,6 +27,7 @@ export default function AppModal() {
   const titles = {
     supplier: t.addSupplier,
     customer: t.addCustomer,
+    account: t.addAccount,
     purchase: t.newPurchase,
     sale: t.newSale,
   };
@@ -54,6 +57,17 @@ export default function AppModal() {
             <input type="tel" value={newCustomer.phone} onChange={e => setNewCustomer({ ...newCustomer, phone: e.target.value })} placeholder={t.placeholders.phone} className="w-full p-2 bg-gray-700 rounded text-sm" />
             <input type="text" value={newCustomer.address} onChange={e => setNewCustomer({ ...newCustomer, address: e.target.value })} placeholder={t.placeholders.address} className="w-full p-2 bg-gray-700 rounded text-sm" />
             <button onClick={addCustomerAction} className="w-full p-2 bg-cyan-600 hover:bg-cyan-700 rounded font-medium text-sm">{t.addCustomer}</button>
+          </div>
+        )}
+
+        {showModal === 'account' && (
+          <div className="space-y-2">
+            <input type="text" value={newAccount.name} onChange={e => setNewAccount({ ...newAccount, name: e.target.value })} placeholder={t.placeholders.name} className="w-full p-2 bg-gray-700 rounded text-sm" />
+            <input type="number" value={newAccount.totalAmount} onChange={e => setNewAccount({ ...newAccount, totalAmount: e.target.value })} placeholder={t.placeholders.amount} className="w-full p-2 bg-gray-700 rounded text-sm" />
+            <label className="block text-xs text-gray-400">{t.dueDate}</label>
+            <input type="date" value={newAccount.dueDate} onChange={e => setNewAccount({ ...newAccount, dueDate: e.target.value })} className="w-full p-2 bg-gray-700 rounded text-sm" />
+            <textarea value={newAccount.description} onChange={e => setNewAccount({ ...newAccount, description: e.target.value })} placeholder={t.placeholders.description} className="w-full p-2 bg-gray-700 rounded text-sm" rows={2} />
+            <button onClick={addAccountAction} className="w-full p-2 bg-emerald-600 hover:bg-emerald-700 rounded font-medium text-sm">{t.addAccount}</button>
           </div>
         )}
 

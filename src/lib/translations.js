@@ -43,6 +43,8 @@ export const translations = {
     addCustomer: 'Add Customer',
     addCreditor: 'Add Creditor',
     addDebtor: 'Add Debtor',
+    addAccount: 'Add Account',
+    newAccount: 'New Account',
     addTransaction: 'Add Transaction',
     newPurchase: 'New Purchase',
     newSale: 'New Sale',
@@ -128,7 +130,9 @@ export const translations = {
       paymentDesc: 'Description (e.g., payment method, reference)',
       item: 'Item *',
       searchSuppliers: 'Search suppliers...',
-      searchCustomers: 'Search customers...'
+      searchCustomers: 'Search customers...',
+      searchAccounts: 'Search accounts...',
+      noResults: 'No matching accounts found.'
     }
   },
   gu: {
@@ -175,6 +179,8 @@ export const translations = {
     addCustomer: 'ગ્રાહક ઉમેરો',
     addCreditor: 'લેણદાર ઉમેરો',
     addDebtor: 'દેવાદાર ઉમેરો',
+    addAccount: 'ખાતા ઉમેરો',
+    newAccount: 'નવું ખાથું',
     addTransaction: 'વ્યવહાર ઉમેરો',
     newPurchase: 'નવી ખરીદી',
     newSale: 'નવું વેચાણ',
@@ -260,7 +266,9 @@ export const translations = {
       paymentDesc: 'વર્ણન (દા.ત., ચુકવણી પદ્ધતિ, સંદર્ભ)',
       item: 'વસ્તુ *',
       searchSuppliers: 'સપ્લાયર્સ શોધો...',
-      searchCustomers: 'ગ્રાહકો શોધો...'
+      searchCustomers: 'ગ્રાહકો શોધો...',
+      searchAccounts: 'ખાતાઓ શોધો...',
+      noResults: 'મેચ થતી ખાતાઓ મળ્યાં નહીં.'
     }
   }
 };

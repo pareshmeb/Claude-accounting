@@ -35,6 +35,7 @@ export function AppProvider({ children }) {
   const [newCustomer, setNewCustomer] = useState({ name: '', email: '', phone: '', address: '' });
   const [newCreditor, setNewCreditor] = useState({ name: '', amount: '', dueDate: '', description: '' });
   const [newDebtor, setNewDebtor] = useState({ name: '', amount: '', dueDate: '', description: '' });
+  const [newAccount, setNewAccount] = useState({ name: '', totalAmount: '', dueDate: '', description: '' });
   const [newPurchase, setNewPurchase] = useState({ supplierId: '', date: new Date().toISOString().split('T')[0], description: '', items: [{ name: '', qty: 1, price: '' }] });
   const [newSale, setNewSale] = useState({ customerId: '', date: new Date().toISOString().split('T')[0], description: '', items: [{ name: '', qty: 1, price: '' }] });
   const [newTx, setNewTx] = useState({ type: 'expense', amount: '', category: '', description: '', date: new Date().toISOString().split('T')[0] });
@@ -252,6 +253,30 @@ export function AppProvider({ children }) {
     setCustomerPayments(prev => prev.filter(x => x.customerId !== id));
   };
 
+  const addAccountAction = async () => {
+    if (!newAccount.name) return;
+    const account = {
+      ...newAccount,
+      totalAmount: parseFloat(newAccount.totalAmount) || 0,
+      totalTransacted: 0,
+      id: Date.now(),
+    };
+    const res = await fetch('/api/accounts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(account),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ error: 'Failed to create account' }));
+      console.error('Account create failed:', error);
+      return;
+    }
+    const createdAccount = await res.json();
+    setAccounts([...accounts, createdAccount]);
+    setNewAccount({ name: '', totalAmount: '', dueDate: '', description: '' });
+    setShowModal(null);
+  };
+
   const deletePurchase = async (id) => {
     await fetch(`/api/purchases/${id}`, { method: 'DELETE' });
     setPurchases(prev => prev.filter(x => x.id !== id));
@@ -276,18 +301,6 @@ export function AppProvider({ children }) {
       // 'both'
       return Math.abs(payments - receipts);
     }
-  };
-
-  const addAccountAction = async (name, type, totalAmount, dueDate, description) => {
-    const newAcc = { name, type, totalAmount: parseFloat(totalAmount) || 0, dueDate, description, id: Date.now() };
-    const res = await fetch('/api/accounts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newAcc) });
-    if (!res.ok) {
-      const error = await res.json().catch(() => ({ error: 'Failed to create account' }));
-      console.error('Account create failed:', error);
-      return;
-    }
-    const createdAccount = await res.json();
-    setAccounts([...accounts, createdAccount]);
   };
 
   const deleteAccount = async (id) => {
@@ -354,6 +367,7 @@ export function AppProvider({ children }) {
     newCustomer, setNewCustomer,
     newCreditor, setNewCreditor,
     newDebtor, setNewDebtor,
+    newAccount, setNewAccount,
     newPurchase, setNewPurchase,
     newSale, setNewSale,
     newTx, setNewTx,

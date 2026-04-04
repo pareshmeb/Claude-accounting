@@ -5,8 +5,9 @@ import { Plus, X, ChevronDown, ChevronUp, Edit3, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function AccountsPage() {
-  const { t, accounts, deleteAccount, deleteAccountTransaction, setConfirmDelete, setPaymentModal } = useApp();
+  const { t, accounts, deleteAccount, deleteAccountTransaction, setConfirmDelete, setPaymentModal, setShowModal } = useApp();
   const [expanded, setExpanded] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
 
   const toggleExpanded = (id) => {
     setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
@@ -27,6 +28,12 @@ export default function AccountsPage() {
     return receipts - payments;
   };
 
+  const filteredAccounts = accounts.filter(account => {
+    const search = searchTerm.trim().toLowerCase();
+    if (!search) return true;
+    return `${account.name} ${account.description || ''}`.toLowerCase().includes(search);
+  });
+
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
@@ -36,6 +43,9 @@ export default function AccountsPage() {
             ({t.balance || 'Balance'}: {totalBalance >= 0 ? '+' : ''}₹{Math.abs(totalBalance).toLocaleString('en-IN')})
           </span>
         </h2>
+        <button onClick={() => setShowModal('account')} className="flex items-center gap-1 px-2 py-1 bg-emerald-600 rounded text-xs">
+          <Plus size={12} /> {t.addAccount}
+        </button>
       </div>
 
       {accounts.length === 0 ? (
@@ -43,8 +53,36 @@ export default function AccountsPage() {
           <p>{t.noAccounts || 'No accounts. Import from Excel to get started.'}</p>
         </div>
       ) : (
-        <div className="grid gap-2">
-          {accounts.map(account => {
+        <div className="space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder={t.placeholders?.searchAccounts || 'Search accounts...'}
+                className="min-w-[220px] max-w-sm flex-1 rounded border border-gray-700 bg-gray-900 px-2 py-1 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  className="p-2 rounded bg-gray-700 hover:bg-gray-600"
+                  aria-label="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {filteredAccounts.length === 0 ? (
+            <div className="text-center py-8 text-gray-400">
+              {t.noResults || 'No matching accounts found.'}
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              {filteredAccounts.map(account => {
             const balance = getAccountBalance(account);
             const isExpanded = expanded[account.id];
 
