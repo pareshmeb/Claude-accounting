@@ -29,6 +29,7 @@ export function AppProvider({ children }) {
   const [paymentDesc, setPaymentDesc] = useState('');
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [modalError, setModalError] = useState(null);
 
   // Form states
   const [newSupplier, setNewSupplier] = useState({ name: '', email: '', phone: '', address: '' });
@@ -269,11 +270,13 @@ export function AppProvider({ children }) {
     if (!res.ok) {
       const error = await res.json().catch(() => ({ error: 'Failed to create account' }));
       console.error('Account create failed:', error);
+      setModalError(error.error || 'Failed to create account');
       return;
     }
     const createdAccount = await res.json();
     setAccounts([...accounts, createdAccount]);
     setNewAccount({ name: '', totalAmount: '', dueDate: '', description: '' });
+    setModalError(null);
     setShowModal(null);
   };
 
