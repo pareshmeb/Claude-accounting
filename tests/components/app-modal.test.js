@@ -9,19 +9,16 @@ vi.mock('@/context/AppContext', () => ({
 
 describe('AppModal', () => {
   let mockSetShowModal;
-  let mockSetNewSupplier, mockSetNewCustomer, mockSetNewCreditor, mockSetNewDebtor;
-  let mockSetNewPurchase, mockSetNewSale, mockSetNewTx;
+  let mockSetNewSupplier, mockSetNewCustomer;
+  let mockSetNewPurchase, mockSetNewSale;
   let mockUpdateItem, mockRemoveItem, mockAddItem;
 
   beforeEach(() => {
     mockSetShowModal = vi.fn();
     mockSetNewSupplier = vi.fn();
     mockSetNewCustomer = vi.fn();
-    mockSetNewCreditor = vi.fn();
-    mockSetNewDebtor = vi.fn();
     mockSetNewPurchase = vi.fn();
     mockSetNewSale = vi.fn();
-    mockSetNewTx = vi.fn();
     mockUpdateItem = vi.fn();
     mockRemoveItem = vi.fn();
     mockAddItem = vi.fn();
@@ -92,72 +89,6 @@ describe('AppModal', () => {
     useApp.mockReturnValue(createMockContext({ showModal: 'customer', addCustomerAction: mockAdd }));
     render(<AppModal />);
     const submitButton = screen.getAllByRole('button').find(btn => btn.textContent === 'Add Customer');
-    fireEvent.click(submitButton);
-    expect(mockAdd).toHaveBeenCalledTimes(1);
-  });
-
-  // --- Creditor ---
-  it('renders creditor form with amount and date fields', () => {
-    useApp.mockReturnValue(createMockContext({ showModal: 'creditor' }));
-    render(<AppModal />);
-    expect(screen.getByRole('heading', { name: 'Add Creditor' })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Name *')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Amount owed *')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Description (e.g., loan purpose, terms)')).toBeInTheDocument();
-  });
-
-  it('creditor form inputs call setNewCreditor on change', () => {
-    useApp.mockReturnValue(createMockContext({
-      showModal: 'creditor',
-      setNewCreditor: mockSetNewCreditor,
-    }));
-    render(<AppModal />);
-    fireEvent.change(screen.getByPlaceholderText('Name *'), { target: { value: 'Cred' } });
-    expect(mockSetNewCreditor).toHaveBeenCalled();
-    fireEvent.change(screen.getByPlaceholderText('Amount owed *'), { target: { value: '500' } });
-    expect(mockSetNewCreditor).toHaveBeenCalledTimes(2);
-    fireEvent.change(screen.getByPlaceholderText('Description (e.g., loan purpose, terms)'), { target: { value: 'Loan' } });
-    expect(mockSetNewCreditor).toHaveBeenCalledTimes(3);
-  });
-
-  it('submit button for creditor calls addCreditorAction', () => {
-    const mockAdd = vi.fn();
-    useApp.mockReturnValue(createMockContext({ showModal: 'creditor', addCreditorAction: mockAdd }));
-    render(<AppModal />);
-    const submitButton = screen.getAllByRole('button').find(btn => btn.textContent === 'Add Creditor');
-    fireEvent.click(submitButton);
-    expect(mockAdd).toHaveBeenCalledTimes(1);
-  });
-
-  // --- Debtor ---
-  it('renders debtor form with amount and date fields', () => {
-    useApp.mockReturnValue(createMockContext({ showModal: 'debtor' }));
-    render(<AppModal />);
-    expect(screen.getByRole('heading', { name: 'Add Debtor' })).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Name *')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Amount owed to you *')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Description (e.g., reason for loan, terms)')).toBeInTheDocument();
-  });
-
-  it('debtor form inputs call setNewDebtor on change', () => {
-    useApp.mockReturnValue(createMockContext({
-      showModal: 'debtor',
-      setNewDebtor: mockSetNewDebtor,
-    }));
-    render(<AppModal />);
-    fireEvent.change(screen.getByPlaceholderText('Name *'), { target: { value: 'Debt' } });
-    expect(mockSetNewDebtor).toHaveBeenCalled();
-    fireEvent.change(screen.getByPlaceholderText('Amount owed to you *'), { target: { value: '300' } });
-    expect(mockSetNewDebtor).toHaveBeenCalledTimes(2);
-    fireEvent.change(screen.getByPlaceholderText('Description (e.g., reason for loan, terms)'), { target: { value: 'Lent' } });
-    expect(mockSetNewDebtor).toHaveBeenCalledTimes(3);
-  });
-
-  it('submit button for debtor calls addDebtorAction', () => {
-    const mockAdd = vi.fn();
-    useApp.mockReturnValue(createMockContext({ showModal: 'debtor', addDebtorAction: mockAdd }));
-    render(<AppModal />);
-    const submitButton = screen.getAllByRole('button').find(btn => btn.textContent === 'Add Debtor');
     fireEvent.click(submitButton);
     expect(mockAdd).toHaveBeenCalledTimes(1);
   });
@@ -319,49 +250,6 @@ describe('AppModal', () => {
     }));
     render(<AppModal />);
     const submitButton = screen.getAllByRole('button').find(btn => btn.textContent === 'New Sale');
-    fireEvent.click(submitButton);
-    expect(mockAdd).toHaveBeenCalledTimes(1);
-  });
-
-  // --- Transaction ---
-  it('renders transaction form with expense/income toggle', () => {
-    useApp.mockReturnValue(createMockContext({ showModal: 'transaction' }));
-    render(<AppModal />);
-    expect(screen.getByRole('heading', { name: 'Add Transaction' })).toBeInTheDocument();
-    expect(screen.getByText('Expense')).toBeInTheDocument();
-    expect(screen.getByText('Income')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Amount *')).toBeInTheDocument();
-  });
-
-  it('transaction type buttons call setNewTx', () => {
-    useApp.mockReturnValue(createMockContext({
-      showModal: 'transaction',
-      setNewTx: mockSetNewTx,
-    }));
-    render(<AppModal />);
-    fireEvent.click(screen.getByText('Income'));
-    expect(mockSetNewTx).toHaveBeenCalled();
-    fireEvent.click(screen.getByText('Expense'));
-    expect(mockSetNewTx).toHaveBeenCalledTimes(2);
-  });
-
-  it('transaction form inputs call setNewTx on change', () => {
-    useApp.mockReturnValue(createMockContext({
-      showModal: 'transaction',
-      setNewTx: mockSetNewTx,
-    }));
-    render(<AppModal />);
-    fireEvent.change(screen.getByPlaceholderText('Amount *'), { target: { value: '500' } });
-    expect(mockSetNewTx).toHaveBeenCalled();
-    fireEvent.change(screen.getByPlaceholderText('Description'), { target: { value: 'Groceries' } });
-    expect(mockSetNewTx).toHaveBeenCalledTimes(2);
-  });
-
-  it('submit button for transaction calls addTransactionAction', () => {
-    const mockAdd = vi.fn();
-    useApp.mockReturnValue(createMockContext({ showModal: 'transaction', addTransactionAction: mockAdd }));
-    render(<AppModal />);
-    const submitButton = screen.getAllByRole('button').find(btn => btn.textContent === 'Add Transaction');
     fireEvent.click(submitButton);
     expect(mockAdd).toHaveBeenCalledTimes(1);
   });

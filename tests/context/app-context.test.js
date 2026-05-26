@@ -3,14 +3,9 @@ import { render, waitFor, act } from '@testing-library/react';
 import { AppProvider, useApp } from '@/context/AppContext';
 
 const mockData = {
-  '/api/transactions': [
-    { id: 1, type: 'income', amount: 5000, category: 0, description: 'Salary', date: '2026-01-01' },
-    { id: 2, type: 'expense', amount: 200, category: 0, description: 'Food', date: '2026-01-02' },
-  ],
   '/api/suppliers': [{ id: 1, name: 'Supplier A', email: '', phone: '', address: '' }],
   '/api/customers': [{ id: 1, name: 'Customer A', email: '', phone: '', address: '' }],
-  '/api/creditors': [{ id: 1, name: 'Creditor A', amount: 1000, paid: 200, dueDate: '', description: '' }],
-  '/api/debtors': [{ id: 1, name: 'Debtor A', amount: 500, received: 100, dueDate: '', description: '' }],
+  '/api/accounts': [],
   '/api/purchases': [
     {
       id: 1,
@@ -41,8 +36,6 @@ const mockData = {
   '/api/customer-payments': [
     { id: 1, customerId: 1, amount: 300, date: '2026-01-06', reference: 'INV-001', description: '' },
   ],
-  '/api/creditor-payments': [],
-  '/api/debtor-receipts': [],
 };
 
 function TestConsumer({ onContext }) {
@@ -69,7 +62,11 @@ describe('AppContext', () => {
   beforeEach(() => {
     captured = null;
     global.fetch = vi.fn((url, opts) => {
-      if (opts && (opts.method === 'POST' || opts.method === 'DELETE')) {
+      if (opts && opts.method === 'POST') {
+        const body = opts.body ? JSON.parse(opts.body) : {};
+        return Promise.resolve({ json: () => Promise.resolve(body), ok: true });
+      }
+      if (opts && opts.method === 'DELETE') {
         return Promise.resolve({ json: () => Promise.resolve({}), ok: true });
       }
       const data = mockData[url] || [];
@@ -163,13 +160,6 @@ describe('AppContext', () => {
   });
 
   describe('computed values', () => {
-    it('balance equals totalIncome - totalExpense', async () => {
-      const ctx = await renderAndWait();
-      expect(ctx.totalIncome).toBe(5000);
-      expect(ctx.totalExpense).toBe(200);
-      expect(ctx.balance).toBe(4800);
-    });
-
     it('totalPayables sums supplier balances', async () => {
       const ctx = await renderAndWait();
       expect(ctx.totalPayables).toBe(200);
@@ -188,16 +178,6 @@ describe('AppContext', () => {
     it('totalPurchasesAmt sums all purchase item totals', async () => {
       const ctx = await renderAndWait();
       expect(ctx.totalPurchasesAmt).toBe(250);
-    });
-
-    it('totalCreditorOwed sums (amount - paid) for creditors', async () => {
-      const ctx = await renderAndWait();
-      expect(ctx.totalCreditorOwed).toBe(800);
-    });
-
-    it('totalDebtorOwed sums (amount - received) for debtors', async () => {
-      const ctx = await renderAndWait();
-      expect(ctx.totalDebtorOwed).toBe(400);
     });
   });
 
@@ -304,66 +284,6 @@ describe('AppContext', () => {
       expect(captured.customers).toHaveLength(initialLen);
     });
 
-    it('addCreditorAction adds creditor and calls fetch POST', async () => {
-      const ctx = await renderAndWait();
-      await act(async () => { ctx.setNewCreditor({ name: 'New Cred', amount: '500', dueDate: '2026-06-01', description: 'Loan' }); });
-      await act(async () => { await captured.addCreditorAction(); });
-      await waitFor(() => {
-        expect(captured.creditors).toHaveLength(2);
-        expect(captured.creditors[1].amount).toBe(500);
-        expect(captured.creditors[1].paid).toBe(0);
-        expect(captured.showModal).toBeNull();
-      });
-      expect(global.fetch).toHaveBeenCalledWith('/api/creditors', expect.objectContaining({ method: 'POST' }));
-    });
-
-    it('addCreditorAction does nothing when name or amount is empty', async () => {
-      const ctx = await renderAndWait();
-      const initialLen = ctx.creditors.length;
-      await act(async () => { await ctx.addCreditorAction(); });
-      expect(captured.creditors).toHaveLength(initialLen);
-    });
-
-    it('addDebtorAction adds debtor and calls fetch POST', async () => {
-      const ctx = await renderAndWait();
-      await act(async () => { ctx.setNewDebtor({ name: 'New Debt', amount: '300', dueDate: '2026-07-01', description: 'Owed' }); });
-      await act(async () => { await captured.addDebtorAction(); });
-      await waitFor(() => {
-        expect(captured.debtors).toHaveLength(2);
-        expect(captured.debtors[1].amount).toBe(300);
-        expect(captured.debtors[1].received).toBe(0);
-        expect(captured.showModal).toBeNull();
-      });
-      expect(global.fetch).toHaveBeenCalledWith('/api/debtors', expect.objectContaining({ method: 'POST' }));
-    });
-
-    it('addDebtorAction does nothing when name or amount is empty', async () => {
-      const ctx = await renderAndWait();
-      const initialLen = ctx.debtors.length;
-      await act(async () => { await ctx.addDebtorAction(); });
-      expect(captured.debtors).toHaveLength(initialLen);
-    });
-
-    it('addTransactionAction adds transaction and calls fetch POST', async () => {
-      const ctx = await renderAndWait();
-      await act(async () => { ctx.setNewTx({ type: 'expense', amount: '100', category: '0', description: 'Test', date: '2026-01-10' }); });
-      await act(async () => { await captured.addTransactionAction(); });
-      await waitFor(() => {
-        expect(captured.transactions).toHaveLength(3);
-        expect(captured.transactions[2].amount).toBe(100);
-        expect(captured.transactions[2].category).toBe(0);
-        expect(captured.showModal).toBeNull();
-      });
-      expect(global.fetch).toHaveBeenCalledWith('/api/transactions', expect.objectContaining({ method: 'POST' }));
-    });
-
-    it('addTransactionAction does nothing when amount is empty', async () => {
-      const ctx = await renderAndWait();
-      const initialLen = ctx.transactions.length;
-      await act(async () => { await ctx.addTransactionAction(); });
-      expect(captured.transactions).toHaveLength(initialLen);
-    });
-
     it('addPurchaseAction adds purchase and calls fetch POST', async () => {
       const ctx = await renderAndWait();
       await act(async () => {
@@ -449,34 +369,6 @@ describe('AppContext', () => {
     });
   });
 
-  describe('delete actions', () => {
-    it('deleteTransaction calls fetch DELETE and removes from state', async () => {
-      const ctx = await renderAndWait();
-      expect(ctx.transactions).toHaveLength(2);
-      await act(async () => { await ctx.deleteTransaction(1); });
-      await waitFor(() => {
-        expect(captured.transactions).toHaveLength(1);
-        expect(captured.transactions.find((t) => t.id === 1)).toBeUndefined();
-      });
-      expect(global.fetch).toHaveBeenCalledWith('/api/transactions/1', { method: 'DELETE' });
-    });
-
-    it('deleteCreditor calls fetch DELETE and removes from state', async () => {
-      const ctx = await renderAndWait();
-      expect(ctx.creditors).toHaveLength(1);
-      await act(async () => { await ctx.deleteCreditor(1); });
-      await waitFor(() => { expect(captured.creditors).toHaveLength(0); });
-      expect(global.fetch).toHaveBeenCalledWith('/api/creditors/1', { method: 'DELETE' });
-    });
-
-    it('deleteDebtor calls fetch DELETE and removes from state', async () => {
-      const ctx = await renderAndWait();
-      expect(ctx.debtors).toHaveLength(1);
-      await act(async () => { await ctx.deleteDebtor(1); });
-      await waitFor(() => { expect(captured.debtors).toHaveLength(0); });
-      expect(global.fetch).toHaveBeenCalledWith('/api/debtors/1', { method: 'DELETE' });
-    });
-  });
 
   describe('makePaymentAction', () => {
     it('makes supplier payment and updates state', async () => {
@@ -491,7 +383,7 @@ describe('AppContext', () => {
       await waitFor(() => {
         expect(captured.paymentModal).toBeNull();
         expect(captured.supplierPayments).toHaveLength(2);
-        expect(captured.transactions.length).toBeGreaterThan(2);
+        expect(captured.transactions).toHaveLength(1);
         // Purchase should now be partially paid
         const purchase = captured.purchases.find(p => p.billNo === 'BILL-001');
         expect(purchase.paidAmount).toBe(100);
@@ -581,42 +473,6 @@ describe('AppContext', () => {
       });
     });
 
-    it('makes creditor payment and updates state', async () => {
-      const ctx = await renderAndWait();
-      await act(async () => {
-        ctx.setPaymentModal({ type: 'creditor', id: 1, name: 'Creditor A' });
-        ctx.setPaymentAmount('300');
-        ctx.setPaymentDesc('Creditor payment');
-        ctx.setPaymentDate('2026-03-01');
-      });
-      await act(async () => { await captured.makePaymentAction(); });
-      await waitFor(() => {
-        expect(captured.paymentModal).toBeNull();
-        expect(captured.creditorPayments).toHaveLength(1);
-        // Creditor paid amount should increase
-        const creditor = captured.creditors.find(c => c.id === 1);
-        expect(creditor.paid).toBe(500); // 200 + 300
-      });
-    });
-
-    it('makes debtor receipt and updates state', async () => {
-      const ctx = await renderAndWait();
-      await act(async () => {
-        ctx.setPaymentModal({ type: 'debtor', id: 1, name: 'Debtor A' });
-        ctx.setPaymentAmount('200');
-        ctx.setPaymentDesc('Debtor receipt');
-        ctx.setPaymentDate('2026-03-05');
-      });
-      await act(async () => { await captured.makePaymentAction(); });
-      await waitFor(() => {
-        expect(captured.paymentModal).toBeNull();
-        expect(captured.debtorReceipts).toHaveLength(1);
-        // Debtor received amount should increase
-        const debtor = captured.debtors.find(d => d.id === 1);
-        expect(debtor.received).toBe(300); // 100 + 200
-      });
-    });
-
     it('does nothing when paymentAmount is empty', async () => {
       const ctx = await renderAndWait();
       await act(async () => {
@@ -632,8 +488,7 @@ describe('AppContext', () => {
       const ctx = await renderAndWait();
       await act(async () => { ctx.setPaymentAmount('100'); });
       await act(async () => { await captured.makePaymentAction(); });
-      // No crash, no new transactions
-      expect(captured.transactions).toHaveLength(2);
+      expect(captured.transactions).toHaveLength(0);
     });
 
     it('uses default payment description for supplier when desc is empty', async () => {

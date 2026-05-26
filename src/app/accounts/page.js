@@ -103,37 +103,67 @@ export default function AccountsPage() {
                   {expanded[account.id] && (
                     <div className="mt-3 pt-3 border-t border-gray-600">
                       {account.transactions && account.transactions.length > 0 ? (
-                        <div className="space-y-1">
-                          {account.transactions.map(tx => (
-                            <div key={tx.id} className="flex items-center justify-between text-xs py-1 gap-2">
-                              <div className="min-w-[80px] text-gray-300">{formatDateDisplay(tx.date)}</div>
-                              <div className="flex-1 mx-2 truncate text-gray-400">{tx.description || '-'}</div>
-                              <div className={tx.transactionType === 'receipt' ? 'text-emerald-400' : 'text-red-400'}>
-                                {tx.transactionType === 'receipt' ? '+' : '-'}₹{tx.amount.toLocaleString('en-IN')}
-                              </div>
-                              <div className="flex gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => setPaymentModal({ type: 'account-transaction', id: account.id, transaction: tx })}
-                                  className="p-1 rounded bg-gray-700 hover:bg-gray-600"
-                                  aria-label="Edit transaction"
-                                >
-                                  <Edit3 size={12} />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setConfirmDelete({
-                                    message: `Delete transaction from ${account.name}?`,
-                                    onConfirm: () => deleteAccountTransaction(account.id, tx.id),
-                                  })}
-                                  className="p-1 rounded bg-gray-700 hover:bg-gray-600"
-                                  aria-label="Delete transaction"
-                                >
-                                  <Trash2 size={12} />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead className="bg-gray-700">
+                              <tr>
+                                <th className="text-left p-1.5">{t.date || 'Date'}</th>
+                                <th className="text-left p-1.5">{t.description || 'Description'}</th>
+                                <th className="text-right p-1.5">{t.credit || 'Credit'}</th>
+                                <th className="text-right p-1.5">{t.debit || 'Debit'}</th>
+                                <th className="text-right p-1.5">{t.balance || 'Balance'}</th>
+                                <th className="p-1.5"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(() => {
+                                let running = 0;
+                                return [...account.transactions]
+                                  .sort((a, b) => new Date(a.date) - new Date(b.date))
+                                  .map(tx => {
+                                    running += tx.transactionType === 'receipt' ? tx.amount : -tx.amount;
+                                    return (
+                                      <tr key={tx.id} className="border-t border-gray-700">
+                                        <td className="p-1.5 text-gray-400">{formatDateDisplay(tx.date)}</td>
+                                        <td className="p-1.5 text-gray-300 max-w-[120px] truncate" title={tx.description}>{tx.description || '-'}</td>
+                                        <td className="p-1.5 text-right text-emerald-400">
+                                          {tx.transactionType === 'receipt' ? `₹${tx.amount.toLocaleString('en-IN')}` : '-'}
+                                        </td>
+                                        <td className="p-1.5 text-right text-red-400">
+                                          {tx.transactionType === 'payment' ? `₹${tx.amount.toLocaleString('en-IN')}` : '-'}
+                                        </td>
+                                        <td className={`p-1.5 text-right font-semibold ${running >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                          ₹{Math.abs(running).toLocaleString('en-IN')}
+                                        </td>
+                                        <td className="p-1.5">
+                                          <div className="flex gap-1 justify-end">
+                                            <button
+                                              type="button"
+                                              onClick={() => setPaymentModal({ type: 'account-transaction', id: account.id, transaction: tx })}
+                                              className="p-1 rounded bg-gray-700 hover:bg-gray-600"
+                                              aria-label="Edit transaction"
+                                            >
+                                              <Edit3 size={12} />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => setConfirmDelete({
+                                                message: `Delete transaction from ${account.name}?`,
+                                                onConfirm: () => deleteAccountTransaction(account.id, tx.id),
+                                              })}
+                                              className="p-1 rounded bg-gray-700 hover:bg-gray-600"
+                                              aria-label="Delete transaction"
+                                            >
+                                              <Trash2 size={12} />
+                                            </button>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    );
+                                  });
+                              })()}
+                            </tbody>
+                          </table>
                         </div>
                       ) : (
                         <p className="text-xs text-gray-400">{t.noTransactions || 'No transactions'}</p>
