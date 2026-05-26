@@ -4,3 +4,28 @@ body {
   background-color: #111827;
   color: white;
 }
+
+/* Make date inputs fully clickable with visible calendar icon */
+input[type="date"] {
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.7);
+  opacity: 1;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+input[type="date"]:hover {
+  border-color: #6366f1;
+}
