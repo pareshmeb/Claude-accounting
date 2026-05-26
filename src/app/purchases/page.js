@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { formatDateDisplay } from '@/lib/date-helpers';
 import StatusBadge from '@/components/StatusBadge';
 import SearchBox from '@/components/SearchBox';
-import { formatDateDisplay } from '@/lib/date-helpers';
 import { Plus, CreditCard, Calendar, X } from 'lucide-react';
 
 export default function PurchasesPage() {

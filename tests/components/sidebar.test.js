@@ -28,11 +28,11 @@ describe('Sidebar', () => {
     expect(screen.getByText('AccuBooks')).toBeInTheDocument();
   });
 
-  it('renders all 9 navigation items', () => {
+  it('renders all 7 navigation items', () => {
     render(<Sidebar />);
     const navLabels = [
-      'Dashboard', 'Transactions', 'Suppliers', 'Customers',
-      'Purchases', 'Sales', 'Creditors', 'Debtors', 'Reports',
+      'Dashboard', 'Accounts', 'Suppliers', 'Customers',
+      'Purchases', 'Sales', 'Reports',
     ];
     navLabels.forEach((label) => {
       expect(screen.getByText(label)).toBeInTheDocument();

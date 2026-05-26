@@ -78,10 +78,10 @@ describe('PurchasesPage', () => {
       getSupplier: vi.fn(() => ({ name: 'Test Supplier' })),
     }));
     render(<PurchasesPage />);
-    // For the paid purchase, the last <td> should have no button
     const rows = screen.getAllByRole('row');
     // rows[0] is the header, rows[1] is the paid purchase
+    // Paid row has only a delete button (1), not a pay button
     const lastCellButtons = rows[1].querySelectorAll('td:last-child button');
-    expect(lastCellButtons).toHaveLength(0);
+    expect(lastCellButtons).toHaveLength(1);
   });
 });
