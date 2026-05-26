@@ -2,21 +2,19 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import { Wallet, LayoutDashboard, List, Building, Users, Package, ShoppingCart, UserX, UserCheck, CircleDot, Globe } from 'lucide-react';
+import { Wallet, LayoutDashboard, Building, Users, Package, ShoppingCart, CircleDot, Globe, Upload } from 'lucide-react';
 
 export default function Sidebar() {
-  const { t, lang, setLang } = useApp();
+  const { t, lang, setLang, setShowImportModal } = useApp();
   const pathname = usePathname();
 
   const navItems = [
     { icon: LayoutDashboard, label: t.dashboard, href: '/' },
-    { icon: List, label: t.transactions, href: '/transactions' },
+    { icon: Wallet, label: 'Accounts', href: '/accounts' },
     { icon: Building, label: t.suppliers, href: '/suppliers' },
     { icon: Users, label: t.customers, href: '/customers' },
     { icon: Package, label: t.purchases, href: '/purchases' },
     { icon: ShoppingCart, label: t.sales, href: '/sales' },
-    { icon: UserX, label: t.creditors, href: '/creditors' },
-    { icon: UserCheck, label: t.debtors, href: '/debtors' },
     { icon: CircleDot, label: t.reports, href: '/reports' },
   ];
 
@@ -50,6 +48,12 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
+      <button
+        onClick={() => setShowImportModal(true)}
+        className="flex items-center justify-center gap-1 mt-2 p-1.5 bg-emerald-600 hover:bg-emerald-700 rounded text-xs font-medium"
+      >
+        <Upload size={12} /> {t.importData}
+      </button>
     </div>
   );
 }

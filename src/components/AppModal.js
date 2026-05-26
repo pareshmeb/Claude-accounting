@@ -8,16 +8,19 @@ export default function AppModal() {
     suppliers, customers,
     newSupplier, setNewSupplier,
     newCustomer, setNewCustomer,
+    newAccount, setNewAccount,
     newCreditor, setNewCreditor,
     newDebtor, setNewDebtor,
     newPurchase, setNewPurchase,
     newSale, setNewSale,
     newTx, setNewTx,
     addSupplierAction, addCustomerAction,
+    addAccountAction,
     addCreditorAction, addDebtorAction,
     addPurchaseAction, addSaleAction,
     addTransactionAction,
     addItem, updateItem, removeItem,
+    modalError,
   } = useApp();
 
   if (!showModal) return null;
@@ -25,11 +28,9 @@ export default function AppModal() {
   const titles = {
     supplier: t.addSupplier,
     customer: t.addCustomer,
+    account: t.addAccount,
     purchase: t.newPurchase,
     sale: t.newSale,
-    creditor: t.addCreditor,
-    debtor: t.addDebtor,
-    transaction: t.addTransaction,
   };
 
   return (
@@ -46,6 +47,7 @@ export default function AppModal() {
             <input type="email" value={newSupplier.email} onChange={e => setNewSupplier({ ...newSupplier, email: e.target.value })} placeholder={t.placeholders.email} className="w-full p-2 bg-gray-700 rounded text-sm" />
             <input type="tel" value={newSupplier.phone} onChange={e => setNewSupplier({ ...newSupplier, phone: e.target.value })} placeholder={t.placeholders.phone} className="w-full p-2 bg-gray-700 rounded text-sm" />
             <input type="text" value={newSupplier.address} onChange={e => setNewSupplier({ ...newSupplier, address: e.target.value })} placeholder={t.placeholders.address} className="w-full p-2 bg-gray-700 rounded text-sm" />
+            {modalError && <div className="text-red-400 text-xs text-center">{modalError}</div>}
             <button onClick={addSupplierAction} className="w-full p-2 bg-orange-600 hover:bg-orange-700 rounded font-medium text-sm">{t.addSupplier}</button>
           </div>
         )}
@@ -56,27 +58,17 @@ export default function AppModal() {
             <input type="email" value={newCustomer.email} onChange={e => setNewCustomer({ ...newCustomer, email: e.target.value })} placeholder={t.placeholders.email} className="w-full p-2 bg-gray-700 rounded text-sm" />
             <input type="tel" value={newCustomer.phone} onChange={e => setNewCustomer({ ...newCustomer, phone: e.target.value })} placeholder={t.placeholders.phone} className="w-full p-2 bg-gray-700 rounded text-sm" />
             <input type="text" value={newCustomer.address} onChange={e => setNewCustomer({ ...newCustomer, address: e.target.value })} placeholder={t.placeholders.address} className="w-full p-2 bg-gray-700 rounded text-sm" />
+            {modalError && <div className="text-red-400 text-xs text-center">{modalError}</div>}
             <button onClick={addCustomerAction} className="w-full p-2 bg-cyan-600 hover:bg-cyan-700 rounded font-medium text-sm">{t.addCustomer}</button>
           </div>
         )}
 
-        {showModal === 'creditor' && (
+        {showModal === 'account' && (
           <div className="space-y-2">
-            <input type="text" value={newCreditor.name} onChange={e => setNewCreditor({ ...newCreditor, name: e.target.value })} placeholder={t.placeholders.name} className="w-full p-2 bg-gray-700 rounded text-sm" />
-            <input type="number" value={newCreditor.amount} onChange={e => setNewCreditor({ ...newCreditor, amount: e.target.value })} placeholder={t.placeholders.amountOwed} className="w-full p-2 bg-gray-700 rounded text-sm" />
-            <input type="date" value={newCreditor.dueDate} onChange={e => setNewCreditor({ ...newCreditor, dueDate: e.target.value })} className="w-full p-2 bg-gray-700 rounded text-sm" />
-            <textarea value={newCreditor.description} onChange={e => setNewCreditor({ ...newCreditor, description: e.target.value })} placeholder={t.placeholders.creditorDesc} className="w-full p-2 bg-gray-700 rounded text-sm" rows={2} />
-            <button onClick={addCreditorAction} className="w-full p-2 bg-orange-600 hover:bg-orange-700 rounded font-medium text-sm">{t.addCreditor}</button>
-          </div>
-        )}
-
-        {showModal === 'debtor' && (
-          <div className="space-y-2">
-            <input type="text" value={newDebtor.name} onChange={e => setNewDebtor({ ...newDebtor, name: e.target.value })} placeholder={t.placeholders.name} className="w-full p-2 bg-gray-700 rounded text-sm" />
-            <input type="number" value={newDebtor.amount} onChange={e => setNewDebtor({ ...newDebtor, amount: e.target.value })} placeholder={t.placeholders.amountOwedToYou} className="w-full p-2 bg-gray-700 rounded text-sm" />
-            <input type="date" value={newDebtor.dueDate} onChange={e => setNewDebtor({ ...newDebtor, dueDate: e.target.value })} className="w-full p-2 bg-gray-700 rounded text-sm" />
-            <textarea value={newDebtor.description} onChange={e => setNewDebtor({ ...newDebtor, description: e.target.value })} placeholder={t.placeholders.debtorDesc} className="w-full p-2 bg-gray-700 rounded text-sm" rows={2} />
-            <button onClick={addDebtorAction} className="w-full p-2 bg-cyan-600 hover:bg-cyan-700 rounded font-medium text-sm">{t.addDebtor}</button>
+            <input type="text" value={newAccount.name} onChange={e => setNewAccount({ ...newAccount, name: e.target.value })} placeholder={t.placeholders.name} className="w-full p-2 bg-gray-700 rounded text-sm" />
+            <textarea value={newAccount.description} onChange={e => setNewAccount({ ...newAccount, description: e.target.value })} placeholder={t.placeholders.description} className="w-full p-2 bg-gray-700 rounded text-sm" rows={2} />
+            {modalError && <div className="text-red-400 text-xs text-center">{modalError}</div>}
+            <button onClick={addAccountAction} className="w-full p-2 bg-emerald-600 hover:bg-emerald-700 rounded font-medium text-sm">{t.addAccount}</button>
           </div>
         )}
 
@@ -129,23 +121,6 @@ export default function AppModal() {
               <span className="font-bold text-blue-400">₹{newSale.items.reduce((s, i) => s + (i.qty * (parseFloat(i.price) || 0)), 0).toLocaleString('en-IN')}</span>
             </div>
             <button onClick={addSaleAction} className="w-full p-2 bg-blue-600 hover:bg-blue-700 rounded font-medium text-sm">{t.newSale}</button>
-          </div>
-        )}
-
-        {showModal === 'transaction' && (
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <button onClick={() => setNewTx({ ...newTx, type: 'expense', category: '' })} className={`flex-1 p-2 rounded text-xs font-medium ${newTx.type === 'expense' ? 'bg-red-500/20 text-red-400 border border-red-500/50' : 'bg-gray-700 text-gray-400'}`}>{t.expense}</button>
-              <button onClick={() => setNewTx({ ...newTx, type: 'income', category: '' })} className={`flex-1 p-2 rounded text-xs font-medium ${newTx.type === 'income' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'bg-gray-700 text-gray-400'}`}>{t.income}</button>
-            </div>
-            <input type="number" value={newTx.amount} onChange={e => setNewTx({ ...newTx, amount: e.target.value })} placeholder={t.placeholders.amount} className="w-full p-2 bg-gray-700 rounded text-sm" />
-            <select value={newTx.category} onChange={e => setNewTx({ ...newTx, category: e.target.value })} className="w-full p-2 bg-gray-700 rounded text-sm">
-              <option value="">{t.selectCategory} *</option>
-              {t.categories[newTx.type].map((c, i) => <option key={i} value={i}>{c}</option>)}
-            </select>
-            <textarea value={newTx.description} onChange={e => setNewTx({ ...newTx, description: e.target.value })} placeholder={t.placeholders.description} className="w-full p-2 bg-gray-700 rounded text-sm" rows={2} />
-            <input type="date" value={newTx.date} onChange={e => setNewTx({ ...newTx, date: e.target.value })} className="w-full p-2 bg-gray-700 rounded text-sm" />
-            <button onClick={addTransactionAction} className="w-full p-2 bg-indigo-600 hover:bg-indigo-700 rounded font-medium text-sm">{t.addTransaction}</button>
           </div>
         )}
       </div>

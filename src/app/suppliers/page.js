@@ -3,13 +3,15 @@ import { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import AccountView from '@/components/AccountView';
 import SearchBox from '@/components/SearchBox';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 
 export default function SuppliersPage() {
   const {
     t, suppliers, totalPayables,
     getSupplierBalance, setShowModal,
     setPaymentModal, newPurchase, setNewPurchase,
+    deleteSupplier, setConfirmDelete,
+    setModalError,
   } = useApp();
 
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -41,7 +43,7 @@ export default function SuppliersPage() {
           {t.suppliers}{' '}
           <span className="text-orange-400 text-sm">({t.payables}: ₹{totalPayables.toLocaleString('en-IN')})</span>
         </h2>
-        <button onClick={() => setShowModal('supplier')} className="flex items-center gap-1 px-2 py-1 bg-orange-600 rounded text-xs">
+        <button onClick={() => { setModalError(null); setShowModal('supplier'); }} className="flex items-center gap-1 px-2 py-1 bg-orange-600 rounded text-xs">
           <Plus size={12} /> {t.add}
         </button>
       </div>
@@ -63,6 +65,7 @@ export default function SuppliersPage() {
               <button onClick={e => { e.stopPropagation(); setNewPurchase({ ...newPurchase, supplierId: s.id }); setShowModal('purchase'); }} className="px-2 py-0.5 bg-purple-600 rounded text-xs">+ {t.purchase}</button>
               <button onClick={e => { e.stopPropagation(); setPaymentModal({ type: 'supplier', id: s.id, name: s.name }); }} className="px-2 py-0.5 bg-emerald-600 rounded text-xs">{t.pay}</button>
               <button onClick={e => { e.stopPropagation(); setSelectedAccount(s); }} className="px-2 py-0.5 bg-gray-700 rounded text-xs">{t.view}</button>
+              <button onClick={e => { e.stopPropagation(); setConfirmDelete({ message: t.deleteSupplierConfirm.replace('{name}', s.name), onConfirm: () => deleteSupplier(s.id) }); }} className="p-1 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400"><X size={12} /></button>
             </div>
           </div>
         ))}

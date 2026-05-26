@@ -1,7 +1,7 @@
 'use client';
 import { useApp } from '@/context/AppContext';
-import { formatDate } from '@/lib/formatDate';
-import { ArrowLeft, Plus, CreditCard } from 'lucide-react';
+import { formatDateDisplay } from '@/lib/date-helpers';
+import { ArrowLeft, Plus, CreditCard, Download } from 'lucide-react';
 
 export default function AccountView({ account, onBack }) {
   const {
@@ -31,6 +31,31 @@ export default function AccountView({ account, onBack }) {
 
   let runningBal = 0;
   ledger.forEach(l => { runningBal += l.debit - l.credit; l.balance = runningBal; });
+
+  const exportCsv = () => {
+    const headers = [t.date, t.type, t.ref, t.description, t.debit, t.credit, t.balance];
+    const rows = ledger.map(l => [
+      formatDateDisplay(l.date),
+      l.type === 'payment' ? t.payment : l.type === 'purchase' ? t.purchase : t.sale,
+      l.ref || '',
+      l.desc || '',
+      l.debit || '',
+      l.credit || '',
+      l.balance,
+    ]);
+    const escapeCsv = (v) => {
+      const s = String(v ?? '');
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const csv = [headers, ...rows].map(r => r.map(escapeCsv).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${account.name.replace(/\s+/g, '_')}_ledger.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="space-y-3">
@@ -83,6 +108,14 @@ export default function AccountView({ account, onBack }) {
         >
           <CreditCard size={12} /> {isSupplier ? t.pay : t.receive}
         </button>
+        {ledger.length > 0 && (
+          <button
+            onClick={exportCsv}
+            className="flex items-center gap-1 px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs ml-auto"
+          >
+            <Download size={12} /> {t.exportCsv}
+          </button>
+        )}
       </div>
       <div className="bg-gray-800 rounded-xl p-2">
         <h3 className="font-semibold text-sm mb-2">{t.accountLedger}</h3>
@@ -102,7 +135,7 @@ export default function AccountView({ account, onBack }) {
             <tbody>
               {ledger.map((l, i) => (
                 <tr key={i} className="border-t border-gray-700">
-                  <td className="p-1.5 text-gray-400">{formatDate(l.date)}</td>
+                  <td className="p-1.5 text-gray-400">{formatDateDisplay(l.date)}</td>
                   <td className="p-1.5">
                     <span className={`px-1 py-0.5 rounded text-xs ${
                       l.type === 'payment'

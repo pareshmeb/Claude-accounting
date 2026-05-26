@@ -2,15 +2,17 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { useRouter } from 'next/navigation';
+import { formatDateDisplay } from '@/lib/date-helpers';
 import StatusBadge from '@/components/StatusBadge';
 import SearchBox from '@/components/SearchBox';
-import { formatDate } from '@/lib/formatDate';
+import { formatDateDisplay } from '@/lib/date-helpers';
 import { Plus, CreditCard, Calendar, X } from 'lucide-react';
 
 export default function PurchasesPage() {
   const {
     t, purchases, getTotal, getSupplier,
     setShowModal, setPaymentModal,
+    deletePurchase, setConfirmDelete,
   } = useApp();
 
   const router = useRouter();
@@ -117,7 +119,7 @@ export default function PurchasesPage() {
                   {getSupplier(p.supplierId)?.name}
                 </td>
                 <td className="p-2 text-gray-300 max-w-32 truncate" title={p.description}>{p.description || '-'}</td>
-                <td className="p-2 text-gray-400">{formatDate(p.date)}</td>
+                <td className="p-2 text-gray-400">{formatDateDisplay(p.date)}</td>
                 <td className="p-2 text-right text-purple-400 font-semibold">₹{getTotal(p.items).toLocaleString('en-IN')}</td>
                 <td className="p-2 text-right text-emerald-400">₹{p.paidAmount.toLocaleString('en-IN')}</td>
                 <td className="p-2"><StatusBadge status={p.status} /></td>
@@ -136,6 +138,12 @@ export default function PurchasesPage() {
                       <CreditCard size={12} />
                     </button>
                   )}
+                  <button
+                    onClick={() => setConfirmDelete({ message: t.deletePurchaseConfirm.replace('{ref}', p.billNo), onConfirm: () => deletePurchase(p.id) })}
+                    className="p-1 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400"
+                  >
+                    <X size={12} />
+                  </button>
                 </td>
               </tr>
             ))}

@@ -7,6 +7,7 @@ export default function PaymentModal() {
     t, paymentModal, setPaymentModal,
     paymentAmount, setPaymentAmount,
     paymentDesc, setPaymentDesc,
+    paymentDate, setPaymentDate,
     makePaymentAction,
   } = useApp();
 
@@ -31,6 +32,12 @@ export default function PaymentModal() {
               {t.outstanding}: <span className="text-yellow-400 font-semibold">₹{paymentModal.max?.toLocaleString('en-IN')}</span>
             </p>
           )}
+          <input
+            type="date"
+            value={paymentDate}
+            onChange={e => setPaymentDate(e.target.value)}
+            className="w-full p-2 bg-gray-700 rounded text-sm"
+          />
           <input
             type="number"
             value={paymentAmount}
